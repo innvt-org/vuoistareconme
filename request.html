@@ -137,7 +137,7 @@
         app.innerHTML = `
           <div class="req-logo">vuoistareconme</div>
           <div class="card center-card req-card is-in">
-            ${payload.img ? `<img class="card-img-header" src="${escAttr(payload.img)}" alt="">` : ''}
+            ${payload.img ? renderImg(payload.img) : ''}
             ${heroHtml}
             <div class="options">${optionsHtml}</div>
             ${ftHtml}
@@ -158,6 +158,18 @@
       </div>`;
 
     document.getElementById('reveal-btn').addEventListener('click', revealContent);
+  }
+
+  function renderImg(raw) {
+    const { url, type, ytId } = VSCM.resolveImg(raw);
+    if (!url) return '';
+    if (type === 'youtube') {
+      return `<a href="https://www.youtube.com/watch?v=${escAttr(ytId)}" target="_blank" rel="noopener" class="card-img-link">
+        <img class="card-img-header" src="${escAttr(url)}" alt="">
+        <span class="card-img-play">▶</span>
+      </a>`;
+    }
+    return `<img class="card-img-header" src="${escAttr(url)}" alt="">`;
   }
 
   function esc(str) {

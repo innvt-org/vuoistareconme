@@ -1,8 +1,47 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <rect width="1200" height="630" fill="#f7f5f1"/>
-  <circle cx="120" cy="120" r="260" fill="#eeedfe" opacity="0.7"/>
-  <circle cx="1080" cy="510" r="260" fill="#eeedfe" opacity="0.7"/>
-  <text x="600" y="240" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="80" font-weight="bold" fill="#534ab7">vuoistarecon.me</text>
-  <text x="600" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="52" fill="#1a1917">💌 Hai ricevuto un messaggio</text>
-  <text x="600" y="450" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#68655c">Scopri cosa ti è stato inviato.</text>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0eef8"/>
+      <stop offset="100%" stop-color="#e8e4f5"/>
+    </linearGradient>
+    <filter id="blur1">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="blur2">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="24" flood-color="#534ab7" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <circle cx="200" cy="160" r="220" fill="#534ab7" opacity="0.10" filter="url(#blur1)"/>
+  <circle cx="1050" cy="480" r="260" fill="#8b83e0" opacity="0.12" filter="url(#blur1)"/>
+  <circle cx="600" cy="520" r="180" fill="#534ab7" opacity="0.07" filter="url(#blur1)"/>
+
+  <rect x="160" y="80" width="880" height="420" rx="28" fill="white" opacity="0.55" filter="url(#blur2)"/>
+
+  <rect x="440" y="140" width="320" height="36" rx="18" fill="#534ab7" opacity="0.20" filter="url(#blur2)"/>
+  <rect x="300" y="200" width="600" height="60" rx="10" fill="#534ab7" opacity="0.15" filter="url(#blur2)"/>
+  <rect x="240" y="286" width="720" height="52" rx="14" fill="#534ab7" opacity="0.13" filter="url(#blur2)"/>
+  <rect x="240" y="352" width="720" height="52" rx="14" fill="#8b83e0" opacity="0.10" filter="url(#blur2)"/>
+
+  <rect x="50" y="170" width="1100" height="290" rx="24" fill="white" filter="url(#shadow)" opacity="0.97"/>
+
+  <text x="600" y="265" text-anchor="middle"
+        font-family="Georgia, 'Palatino Linotype', serif"
+        font-size="54" font-style="italic" font-weight="bold"
+        fill="#534ab7" letter-spacing="-1">vuoistarecon.me</text>
+
+  <rect x="480" y="285" width="240" height="2" rx="1" fill="#534ab7" opacity="0.25"/>
+
+  <text x="600" y="355" text-anchor="middle"
+        font-family="Georgia, 'Palatino Linotype', serif"
+        font-size="38" fill="#1a1917">💌 Hai ricevuto un messaggio</text>
+
+  <text x="600" y="410" text-anchor="middle"
+        font-family="system-ui, -apple-system, Arial, sans-serif"
+        font-size="22" fill="#68655c" letter-spacing="0.3">Scopri cosa ti hanno inviato su vuoistarecon.me</text>
 </svg>

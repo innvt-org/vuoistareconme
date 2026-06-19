@@ -86,7 +86,7 @@
     app.innerHTML = `
       <div class="reply-logo">vuoistareconme</div>
       <div class="card center-card is-in">
-        ${chosen.img ? `<img class="card-img-header" src="${escAttr(chosen.img)}" alt="">` : ''}
+        ${chosen.img ? renderImg(chosen.img) : ''}
         <span class="reply-icon">${esc(icon)}</span>
         <div class="reply-hero">
           ${payload.r ? `<p class="rh-line rh-receiver">${esc(payload.r)},</p>` : ''}
@@ -122,6 +122,18 @@
     if (url.includes('signal.me') || url.includes('signal.group')) return '🔒';
     if (url.includes('linkedin.com')) return '💼';
     return '→';
+  }
+
+  function renderImg(raw) {
+    const { url, type, ytId } = VSCM.resolveImg(raw);
+    if (!url) return '';
+    if (type === 'youtube') {
+      return `<a href="https://www.youtube.com/watch?v=${escAttr(ytId)}" target="_blank" rel="noopener" class="card-img-link">
+        <img class="card-img-header" src="${escAttr(url)}" alt="">
+        <span class="card-img-play">▶</span>
+      </a>`;
+    }
+    return `<img class="card-img-header" src="${escAttr(url)}" alt="">`;
   }
 
   function esc(str) {

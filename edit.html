@@ -136,6 +136,10 @@
     color: var(--accent);
   }
 
+  .img-preview { margin-top: 8px; border-radius: var(--radius-md); overflow: hidden; display: none; }
+  .img-preview img { width: 100%; max-height: 160px; object-fit: cover; display: block; }
+  .img-preview .img-hint { font-size: 12px; color: var(--text-secondary); padding: 6px 0 2px; line-height: 1.5; }
+
   .emoji-custom-input {
     grid-column: 1 / -1;
     font-size: 20px;
@@ -217,6 +221,7 @@
     </div>
     <p class="label">Immagine header (opzionale)</p>
     <input type="text" id="img-header" placeholder="https://… (.jpg, .gif, …)">
+    <div class="img-preview" id="img-header-preview"></div>
   </div>
 
   <!-- Opzioni -->
@@ -379,6 +384,7 @@ function renderOptionBlocks() {
       </div>
       <p class="label">Immagine risposta (opzionale)</p>
       <input type="text" class="opt-img-input" data-idx="${i}" placeholder="https://… (.jpg, .gif, …)" value="${escAttr(opt.img)}">
+      <div class="img-preview opt-img-preview" data-idx="${i}"></div>
     `;
     container.appendChild(block);
   });
@@ -414,6 +420,7 @@ container.addEventListener('input', e => {
     linkStates[idx].value = e.target.value; rebuildLink(idx);
   } else if (e.target.classList.contains('opt-img-input')) {
     options[idx].img = e.target.value; updatePreview();
+    showImgPreview(container.querySelector(`.opt-img-preview[data-idx="${idx}"]`), e.target.value);
   }
 });
 
@@ -472,10 +479,44 @@ function updatePreview() {
   try { localStorage.setItem('vscm_draft', VSCM.encode(payload)); } catch (_) {}
 }
 
+function showImgPreview(previewEl, rawUrl) {
+  if (!previewEl) return;
+  const { url, type, hint } = VSCM.resolveImg(rawUrl);
+  if (!rawUrl.trim()) {
+    previewEl.style.display = 'none';
+    previewEl.innerHTML = '';
+    return;
+  }
+  if (type === 'unsupported') {
+    previewEl.style.display = '';
+    previewEl.innerHTML = `<p class="img-hint">⚠️ ${hint}</p>`;
+    return;
+  }
+  if (url) {
+    const ytNote = type === 'youtube' ? '<p class="img-hint">YouTube: verrà mostrato il thumbnail con link al video.</p>' : '';
+    previewEl.style.display = '';
+    previewEl.innerHTML = `<img src="${url.replace(/"/g,'&quot;')}" alt="" onerror="this.parentElement.innerHTML='<p class=\\'img-hint\\''>⚠️ Immagine non caricata — verifica il link.</p>';">${ytNote}`;
+    return;
+  }
+  previewEl.style.display = 'none';
+}
+
+function refreshAllImgPreviews() {
+  showImgPreview(document.getElementById('img-header-preview'), document.getElementById('img-header').value);
+  document.querySelectorAll('.opt-img-preview').forEach(el => {
+    const idx = el.dataset.idx;
+    const input = document.querySelector(`.opt-img-input[data-idx="${idx}"]`);
+    if (input) showImgPreview(el, input.value);
+  });
+}
+
 document.getElementById('sender').addEventListener('input', updatePreview);
 document.getElementById('receiver').addEventListener('input', updatePreview);
 document.getElementById('question').addEventListener('input', updatePreview);
-document.getElementById('img-header').addEventListener('input', updatePreview);
+document.getElementById('img-header').addEventListener('input', () => {
+  updatePreview();
+  showImgPreview(document.getElementById('img-header-preview'), document.getElementById('img-header').value);
+});
 
 document.getElementById('copy-btn').addEventListener('click', () => {
   navigator.clipboard.writeText(document.getElementById('url-preview').textContent).then(() => {
@@ -605,6 +646,7 @@ document.getElementById('add-option-btn').addEventListener('click', () => {
 
 loadDraft();
 updatePreview();
+refreshAllImgPreviews();
 </script>
 </body>
 </html>

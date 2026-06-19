@@ -106,5 +106,33 @@ const VSCM = (() => {
     return buildUrl(basePath, { t: encode(payloadObj) }).length;
   }
 
-  return { encode, decode, getParam, buildUrl, estimateUrlLength };
+  // Converte URL di piattaforme note in URL diretto dell'immagine/thumbnail.
+  // Restituisce { url, type } dove type è 'img' | 'youtube' | 'unsupported' | 'unknown'.
+  function resolveImg(raw) {
+    if (!raw) return { url: '', type: 'img' };
+    const s = raw.trim();
+
+    // Giphy pagina → GIF diretta
+    // es. https://giphy.com/gifs/title-GIPHYID
+    let m = s.match(/giphy\.com\/gifs\/(?:.*-)?([A-Za-z0-9]+)\/?(?:[?#].*)?$/);
+    if (m) return { url: `https://media.giphy.com/media/${m[1]}/giphy.gif`, type: 'img' };
+
+    // YouTube watch / short → thumbnail
+    m = s.match(/(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/)([A-Za-z0-9_-]+)/);
+    if (m) return { url: `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg`, type: 'youtube', ytId: m[1] };
+
+    // Tenor pagina → non convertibile senza API
+    if (s.includes('tenor.com/view/') || s.includes('tenor.com/search/')) {
+      return { url: '', type: 'unsupported', hint: 'Tenor: apri la GIF, tasto destro → "Copia indirizzo immagine" e usa quel link.' };
+    }
+
+    // Instagram / TikTok → non embeddabili client-side
+    if (s.includes('instagram.com') || s.includes('tiktok.com')) {
+      return { url: '', type: 'unsupported', hint: 'Instagram/TikTok: scarica la GIF/video e caricala su Giphy oppure usa un link diretto.' };
+    }
+
+    return { url: s, type: 'img' };
+  }
+
+  return { encode, decode, getParam, buildUrl, estimateUrlLength, resolveImg };
 })();
