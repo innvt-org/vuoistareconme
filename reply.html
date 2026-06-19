@@ -104,6 +104,13 @@
     if (url.includes('instagram.com')) return '📸';
     if (url.includes('t.me'))          return '✈️';
     if (url.includes('snapchat.com'))  return '👻';
+    if (url.includes('tiktok.com'))    return '🎵';
+    if (url.includes('facebook.com') || url.includes('fb.me') || url.includes('m.me')) return '👤';
+    if (url.includes('twitter.com') || url.includes('x.com'))   return '🐦';
+    if (url.includes('youtube.com') || url.includes('youtu.be')) return '📺';
+    if (url.includes('discord.gg') || url.includes('discord.com')) return '🎮';
+    if (url.includes('signal.me') || url.includes('signal.group')) return '🔒';
+    if (url.includes('linkedin.com')) return '💼';
     return '→';
   }
 
