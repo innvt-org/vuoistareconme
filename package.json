@@ -6,6 +6,6 @@
     "og": "node scripts/generate-og.mjs"
   },
   "devDependencies": {
-    "@resvg/resvg-js": "^2.6.2"
+    "@napi-rs/canvas": "^0.1.53"
   }
 }
