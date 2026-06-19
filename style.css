@@ -611,3 +611,15 @@ button { font-family: inherit; cursor: pointer; }
   word-break: break-word;
   transition: background 0.25s, border-color 0.25s;
 }
+
+/* ── Footer ── */
+
+.site-footer {
+  text-align: center;
+  padding: 20px 0 8px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  transition: color 0.25s;
+}
+.site-footer a { color: var(--text-tertiary); text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }

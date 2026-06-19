@@ -23,9 +23,12 @@
   }
 
   /* Teaser */
-  .teaser-body { text-align: center; padding: 8px 0 4px; }
-  .teaser-addr { font-family: 'Pacifico', cursive; font-size: clamp(20px, 5.5vw, 28px); color: var(--text); margin: 0; transition: color 0.25s; }
-  .teaser-msg  { font-family: 'Pacifico', cursive; font-size: clamp(20px, 5.5vw, 28px); color: var(--text-secondary); margin: 8px 0 0; line-height: 1.55; transition: color 0.25s; }
+  .teaser-body { padding: 8px 0 4px; }
+  .teaser-line     { font-family: 'Pacifico', cursive; font-size: clamp(20px, 5.5vw, 28px); margin: 0; transition: color 0.25s; }
+  .teaser-receiver { text-align: left;   color: var(--text); }
+  .teaser-msg      { text-align: center; color: var(--accent); padding: 16px 10%; line-height: 1.55; }
+  .teaser-sender   { text-align: right;  color: var(--text); }
+  .teaser-btn-wrap { text-align: center; }
   .teaser-btn  {
     display: inline-block; margin-top: 24px;
     padding: 11px 24px; border-radius: 100px; border: none;
@@ -40,7 +43,7 @@
   .question-hero { font-family: 'Pacifico', cursive; margin: 0 0 24px; line-height: 1.55; }
   .qh-line     { font-size: clamp(20px, 5.5vw, 28px); margin: 0; transition: color 0.25s; }
   .qh-receiver { text-align: left;   color: var(--text); }
-  .qh-question { text-align: center; color: var(--accent); }
+  .qh-question { text-align: center; color: var(--accent); padding: 16px 10%; }
   .qh-sender   { text-align: right;  color: var(--text); }
 
   .req-card { box-shadow: 0 6px 32px rgba(0,0,0,0.13); }
@@ -54,6 +57,7 @@
 </head>
 <body>
 <div id="app"></div>
+<footer class="site-footer">© 2026 vuoistareconme — <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL</a></footer>
 <script src="lz-string.min.js"></script>
 <script src="payload.js"></script>
 <script>
@@ -133,17 +137,14 @@
       }, 200);
     }
 
-    const teaserMsg = payload.s
-      ? `${esc(payload.s)} ti ha inviato un messaggio`
-      : 'hai ricevuto un messaggio';
-
     app.innerHTML = `
       <div class="req-logo">vuoistareconme</div>
       <div class="card center-card req-card" id="teaser">
         <div class="teaser-body">
-          ${payload.r ? `<p class="teaser-addr">${esc(payload.r)},</p>` : ''}
-          <p class="teaser-msg">${teaserMsg}</p>
-          <button class="teaser-btn" id="reveal-btn">Clicca qui per vederlo</button>
+          ${payload.r ? `<p class="teaser-line teaser-receiver">${esc(payload.r)},</p>` : ''}
+          <p class="teaser-line teaser-msg">${payload.s ? 'ti ha inviato un messaggio' : 'hai ricevuto un messaggio'}</p>
+          ${payload.s ? `<p class="teaser-line teaser-sender">${esc(payload.s)}</p>` : ''}
+          <div class="teaser-btn-wrap"><button class="teaser-btn" id="reveal-btn">Clicca qui per vederlo</button></div>
         </div>
       </div>`;
 
