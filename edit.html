@@ -519,12 +519,17 @@ document.getElementById('img-header').addEventListener('input', () => {
 });
 
 document.getElementById('copy-btn').addEventListener('click', () => {
-  navigator.clipboard.writeText(document.getElementById('url-preview').textContent).then(() => {
-    const btn = document.getElementById('copy-btn');
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copiato!';
-    setTimeout(() => { btn.textContent = orig; }, 1800);
-  });
+  const url = document.getElementById('url-preview').textContent;
+  if (navigator.share) {
+    navigator.share({ url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('copy-btn');
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copiato!';
+      setTimeout(() => { btn.textContent = orig; }, 1800);
+    });
+  }
 });
 
 document.getElementById('open-btn').addEventListener('click', () => {
