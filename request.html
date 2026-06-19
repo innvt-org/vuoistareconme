@@ -13,7 +13,6 @@
   body { justify-content: center; min-height: 100vh; padding: 20px; }
   #app { width: min(calc(100vw - 40px), 440px); display: flex; flex-direction: column; }
 
-  /* Logo / header */
   .req-logo {
     font-family: 'Pacifico', cursive;
     font-size: 24px;
@@ -23,38 +22,43 @@
     transition: color 0.25s;
   }
 
-  /* Immagine hero (fuori dalla card) */
-  .page-hero-img {
-    width: 100%;
-    max-height: 200px;
-    object-fit: cover;
-    border-radius: var(--radius-lg);
-    display: block;
-    margin-bottom: 10px;
+  /* Teaser */
+  .teaser-body { text-align: center; padding: 8px 0 4px; }
+  .teaser-addr { font-family: 'Pacifico', cursive; font-size: clamp(26px, 7vw, 36px); color: var(--text); margin: 0; transition: color 0.25s; }
+  .teaser-msg  { font-size: 15px; color: var(--text-secondary); margin: 10px 0 0; line-height: 1.55; transition: color 0.25s; }
+  .teaser-btn  {
+    display: inline-block; margin-top: 24px;
+    padding: 11px 24px; border-radius: 100px; border: none;
+    background: var(--btn-bg); color: var(--btn-text);
+    font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: opacity 0.15s, transform 0.12s, background 0.25s, color 0.25s;
   }
+  .teaser-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .teaser-btn:active { transform: scale(0.97); }
 
-  /* Blocco domanda in Pacifico — tutte le righe della stessa dimensione */
-  .question-hero {
-    font-family: 'Pacifico', cursive;
-    margin: 0 0 24px;
-    line-height: 1.55;
-  }
+  /* Blocco domanda */
+  .question-hero { font-family: 'Pacifico', cursive; margin: 0 0 24px; line-height: 1.55; }
   .qh-line { font-size: clamp(20px, 5.5vw, 28px); margin: 0; }
   .qh-receiver { color: var(--text);           transition: color 0.25s; }
   .qh-question { color: var(--accent);         transition: color 0.25s; }
   .qh-sender   { color: var(--text-secondary); transition: color 0.25s; }
 
-  /* Card leggermente evidenziata */
   .req-card { box-shadow: 0 6px 32px rgba(0,0,0,0.13); }
+
+  /* Animazioni */
+  @keyframes fade-out { to { opacity: 0; transform: scale(0.96); } }
+  @keyframes slide-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  .is-out { animation: fade-out 0.2s ease forwards; pointer-events: none; }
+  .is-in  { animation: slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script src="payload.js"></script>
 <script>
-  const token = VSCM.getParam('t');
+  const token   = VSCM.getParam('t');
   const payload = VSCM.decode(token);
-  const app = document.getElementById('app');
+  const app     = document.getElementById('app');
 
   if (!payload || !payload.q || payload.o.length === 0) {
     app.innerHTML = `
@@ -68,6 +72,7 @@
       document.body.setAttribute('data-theme', payload.th);
     }
 
+    // Pre-calcolo HTML della fase contenuto
     const heroHtml = `
       <div class="question-hero">
         ${payload.r ? `<p class="qh-line qh-receiver">${esc(payload.r)},</p>` : ''}
@@ -82,41 +87,66 @@
       </button>
     `).join('');
 
+    const ftHtml = payload.ft != null ? `
+      <div class="ft-section">
+        <p class="ft-label">${esc(payload.ft.label || 'Scrivi la tua risposta')}</p>
+        <textarea class="ft-textarea" id="ft-input" placeholder="…"></textarea>
+        <button class="ft-send-btn" id="ft-send">Invia</button>
+      </div>` : '';
+
+    const footerHtml = `
+      <div class="privacy-note">Nessun dato viene salvato — la risposta resta solo nel link successivo.</div>
+      <div class="privacy-note" style="margin-top:10px">
+        <a href="${VSCM.buildUrl('edit.html', { t: token })}" style="color:var(--text-tertiary)">✏️ Modifica questo link</a>
+      </div>`;
+
+    function attachHandlers() {
+      app.querySelectorAll('.opt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          window.location.href = VSCM.buildUrl('reply.html', { t: token, a: btn.getAttribute('data-idx') });
+        });
+      });
+      const ftSend = document.getElementById('ft-send');
+      if (ftSend) {
+        ftSend.addEventListener('click', () => {
+          const msg = document.getElementById('ft-input').value.trim();
+          if (!msg) return;
+          window.location.href = VSCM.buildUrl('reply.html', { t: token, a: 'ft', m: msg });
+        });
+      }
+    }
+
+    function revealContent() {
+      document.getElementById('teaser').classList.add('is-out');
+      setTimeout(() => {
+        app.innerHTML = `
+          <div class="req-logo">vuoistareconme</div>
+          <div class="card center-card req-card is-in">
+            ${payload.img ? `<img class="card-img-header" src="${escAttr(payload.img)}" alt="">` : ''}
+            ${heroHtml}
+            <div class="options">${optionsHtml}</div>
+            ${ftHtml}
+            ${footerHtml}
+          </div>`;
+        attachHandlers();
+      }, 200);
+    }
+
+    const teaserMsg = payload.s
+      ? `${esc(payload.s)} ti ha inviato un messaggio`
+      : 'hai ricevuto un messaggio';
+
     app.innerHTML = `
       <div class="req-logo">vuoistareconme</div>
-      <div class="card center-card req-card">
-        ${payload.img ? `<img class="card-img-header" src="${escAttr(payload.img)}" alt="">` : ''}
-        ${heroHtml}
-        <div class="options">${optionsHtml}</div>
-        ${payload.ft != null ? `
-        <div class="ft-section">
-          <p class="ft-label">${esc(payload.ft.label || 'Scrivi la tua risposta')}</p>
-          <textarea class="ft-textarea" id="ft-input" placeholder="…"></textarea>
-          <button class="ft-send-btn" id="ft-send">Invia</button>
+      <div class="card center-card req-card" id="teaser">
+        <div class="teaser-body">
+          ${payload.r ? `<p class="teaser-addr">${esc(payload.r)},</p>` : ''}
+          <p class="teaser-msg">${teaserMsg}</p>
+          <button class="teaser-btn" id="reveal-btn">Clicca qui per vederlo</button>
         </div>
-        ` : ''}
-        <div class="privacy-note">Nessun dato viene salvato — la risposta resta solo nel link successivo.</div>
-        <div class="privacy-note" style="margin-top:10px">
-          <a href="${VSCM.buildUrl('edit.html', { t: token })}" style="color:var(--text-tertiary)">✏️ Modifica questo link</a>
-        </div>
-      </div>
-    `;
+      </div>`;
 
-    app.querySelectorAll('.opt-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const idx = btn.getAttribute('data-idx');
-        window.location.href = VSCM.buildUrl('reply.html', { t: token, a: idx });
-      });
-    });
-
-    const ftSend = document.getElementById('ft-send');
-    if (ftSend) {
-      ftSend.addEventListener('click', () => {
-        const msg = document.getElementById('ft-input').value.trim();
-        if (!msg) return;
-        window.location.href = VSCM.buildUrl('reply.html', { t: token, a: 'ft', m: msg });
-      });
-    }
+    document.getElementById('reveal-btn').addEventListener('click', revealContent);
   }
 
   function esc(str) {
