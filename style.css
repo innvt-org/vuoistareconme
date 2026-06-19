@@ -419,7 +419,6 @@ button { font-family: inherit; cursor: pointer; }
 
 .card.center-card {
   text-align: center;
-  margin-top: max(0px, calc(50vh - 300px));
 }
 
 .site-brand {
