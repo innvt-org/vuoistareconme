@@ -142,8 +142,7 @@
       <div class="card center-card req-card" id="teaser">
         <div class="teaser-body">
           ${payload.r ? `<p class="teaser-line teaser-receiver">${esc(payload.r)},</p>` : ''}
-          <p class="teaser-line teaser-msg">${payload.s ? 'ti ha inviato un messaggio' : 'hai ricevuto un messaggio'}</p>
-          ${payload.s ? `<p class="teaser-line teaser-sender">${esc(payload.s)}</p>` : ''}
+          <p class="teaser-line teaser-msg">${payload.s ? `${esc(payload.s)} ti ha inviato un messaggio` : 'hai ricevuto un messaggio'}</p>
           <div class="teaser-btn-wrap"><button class="teaser-btn" id="reveal-btn">Clicca qui per vederlo</button></div>
         </div>
       </div>`;
