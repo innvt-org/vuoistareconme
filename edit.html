@@ -498,14 +498,11 @@ function loadDraft() {
       document.getElementById('receiver').value   = p.r;
       document.getElementById('question').value   = p.q;
       document.getElementById('img-header').value = p.img || '';
-      p.o.forEach((o, i) => {
-        if (i >= options.length) return;
-        options[i].label = o.label || options[i].label;
-        options[i].icon  = o.icon  || options[i].icon;
-        options[i].msg   = o.msg   || options[i].msg;
-        options[i].link  = o.link  || '';
-        options[i].img   = o.img   || '';
-        linkStates[i]    = detectLinkType(o.link);
+      options.splice(0);
+      linkStates.splice(0);
+      p.o.forEach(o => {
+        options.push({ label: o.label || '', icon: o.icon || '💬', msg: o.msg || '', link: o.link || '', img: o.img || '' });
+        linkStates.push(detectLinkType(o.link));
       });
       if (p.th) applyTheme(p.th);
       if (p.ft) showFtConfig(p.ft); else hideFtConfig();
