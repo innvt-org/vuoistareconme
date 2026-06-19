@@ -32,6 +32,16 @@
     transition: color 0.25s;
   }
 
+  .share-reply-btn {
+    display: block; width: 100%; margin-top: 20px;
+    padding: 13px 20px; border-radius: 100px; border: none;
+    background: var(--btn-bg); color: var(--btn-text);
+    font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: opacity 0.15s, transform 0.12s, background 0.25s;
+  }
+  .share-reply-btn:hover  { opacity: 0.85; transform: translateY(-1px); }
+  .share-reply-btn:active { transform: scale(0.97); }
+
   /* Blocco risposta */
   .reply-hero  { font-family: 'Pacifico', cursive; margin: 8px 0 0; line-height: 1.55; }
   .rh-line     { font-size: clamp(20px, 5.5vw, 28px); margin: 0; transition: color 0.25s; }
@@ -94,11 +104,26 @@
           ${payload.s ? `<p class="rh-line rh-sender">${esc(payload.s)}</p>` : ''}
         </div>
         ${continueHtml}
+        <button class="share-reply-btn" id="share-reply-btn">Invia la risposta a ${esc(payload.s) || 'chi ti ha scritto'}</button>
         <div class="privacy-note">Questa pagina è visibile a chiunque abbia il link, senza login.</div>
         <div class="privacy-note" style="margin-top:10px">
           <a href="${VSCM.buildUrl('edit.html', { t: token })}" style="color:var(--text-tertiary)">✏️ Modifica questo link</a>
         </div>
       </div>`;
+
+    document.getElementById('share-reply-btn').addEventListener('click', () => {
+      const url = window.location.href;
+      if (navigator.share) {
+        navigator.share({ url });
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          const btn = document.getElementById('share-reply-btn');
+          const orig = btn.textContent;
+          btn.textContent = '✓ Link copiato!';
+          setTimeout(() => { btn.textContent = orig; }, 2000);
+        });
+      }
+    });
   }
 
   function iconFallback(label) {
