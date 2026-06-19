@@ -22,7 +22,12 @@
     transition: color 0.25s;
   }
 
-  .brand { font-family: 'Pacifico', cursive; font-size: 22px; color: var(--accent); margin-bottom: 18px; display: block; transition: color 0.25s; }
+  /* Blocco risposta */
+  .reply-hero  { font-family: 'Pacifico', cursive; margin: 8px 0 0; line-height: 1.55; }
+  .rh-line     { font-size: clamp(20px, 5.5vw, 28px); margin: 0; transition: color 0.25s; }
+  .rh-receiver { text-align: left;   color: var(--text); }
+  .rh-msg      { text-align: center; color: var(--accent); }
+  .rh-sender   { text-align: right;  color: var(--text); }
 
   /* Animazione entrata */
   @keyframes slide-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -59,14 +64,7 @@
     }
 
     const icon = chosen.icon || (isFreeText ? '✍️' : iconFallback(chosen.label));
-
-    const pairHtml = (payload.s || payload.r)
-      ? `<div class="sender-tag">${esc(payload.s)}${payload.s && payload.r ? ' ↔ ' : ''}${esc(payload.r)}</div>`
-      : '';
-
-    const questionHtml = payload.q
-      ? `<div class="reply-label">${esc(payload.q)}</div>`
-      : '';
+    const replyText = isFreeText ? (freeMsg || chosen.label) : (chosen.msg || chosen.label);
 
     const continueHtml = chosen.link
       ? `<a href="${escAttr(chosen.link)}" target="_blank" rel="noopener" class="continue-btn">
@@ -78,12 +76,12 @@
       <div class="reply-logo">vuoistareconme</div>
       <div class="card center-card is-in">
         ${chosen.img ? `<img class="card-img-header" src="${escAttr(chosen.img)}" alt="">` : ''}
-        <span class="brand">vuoistareconme</span>
-        ${pairHtml}
-        ${questionHtml}
         <span class="reply-icon">${esc(icon)}</span>
-        ${isFreeText && freeMsg ? `<div class="ft-reply-quote">${esc(freeMsg)}</div>` : ''}
-        <div class="reply-msg">${esc(chosen.msg || chosen.label)}</div>
+        <div class="reply-hero">
+          ${payload.r ? `<p class="rh-line rh-receiver">${esc(payload.r)},</p>` : ''}
+          <p class="rh-line rh-msg">${esc(replyText)}</p>
+          ${payload.s ? `<p class="rh-line rh-sender">${esc(payload.s)}</p>` : ''}
+        </div>
         ${continueHtml}
         <div class="privacy-note">Questa pagina è visibile a chiunque abbia il link, senza login.</div>
         <div class="privacy-note" style="margin-top:10px">
