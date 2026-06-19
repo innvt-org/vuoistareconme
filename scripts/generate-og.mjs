@@ -9,19 +9,24 @@ import { fileURLToPath } from 'url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-const FONTS = {
-  'Pacifico':  'https://github.com/google/fonts/raw/main/ofl/pacifico/Pacifico-Regular.ttf',
-  'Noto Sans': 'https://github.com/google/fonts/raw/main/ofl/notosans/NotoSans-Regular.ttf',
+const FONT_URLS = {
+  'Pacifico': [
+    'https://github.com/google/fonts/raw/main/ofl/pacifico/Pacifico-Regular.ttf',
+  ],
+  'Lato': [
+    'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf',
+  ],
 };
 
 async function fetchTTF(name) {
-  const url = FONTS[name];
-  console.log(`Scarico ${name}...`);
-  const buf = await fetch(url).then(r => {
-    if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
-    return r.arrayBuffer();
-  });
-  return Buffer.from(buf);
+  const urls = FONT_URLS[name];
+  for (const url of urls) {
+    console.log(`Scarico ${name} da ${url}`);
+    const r = await fetch(url);
+    if (r.ok) return Buffer.from(await r.arrayBuffer());
+    console.warn(`  → ${r.status}, provo prossimo URL`);
+  }
+  throw new Error(`Impossibile scaricare ${name}`);
 }
 
 async function svgToPng(svgFile, pngFile, fontBuffers) {
@@ -30,7 +35,7 @@ async function svgToPng(svgFile, pngFile, fontBuffers) {
     font: {
       fontBuffers,
       loadSystemFonts: false,
-      defaultFontFamily: 'Noto Sans',
+      defaultFontFamily: 'Lato',
     },
     fitTo: { mode: 'width', value: 1200 },
   });
@@ -38,12 +43,12 @@ async function svgToPng(svgFile, pngFile, fontBuffers) {
   console.log('✓', pngFile);
 }
 
-const [pacificoBuf, notoSansBuf] = await Promise.all([
+const [pacificoBuf, latoBuf] = await Promise.all([
   fetchTTF('Pacifico'),
-  fetchTTF('Noto Sans'),
+  fetchTTF('Lato'),
 ]);
 
-const fonts = [pacificoBuf, notoSansBuf];
+const fonts = [pacificoBuf, latoBuf];
 await svgToPng(join(ROOT, 'og-create.svg'),   join(ROOT, 'og-create.png'),   fonts);
 await svgToPng(join(ROOT, 'og-discover.svg'), join(ROOT, 'og-discover.png'), fonts);
 console.log('Done. Commetti i .png e verifica che og:image punti a .png negli HTML.');
