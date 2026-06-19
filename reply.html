@@ -22,26 +22,10 @@
     transition: color 0.25s;
   }
 
-  /* Teaser */
-  .teaser-body { text-align: center; padding: 8px 0 4px; }
-  .teaser-addr { font-family: 'Pacifico', cursive; font-size: clamp(26px, 7vw, 36px); color: var(--text); margin: 0; transition: color 0.25s; }
-  .teaser-msg  { font-size: 15px; color: var(--text-secondary); margin: 10px 0 0; line-height: 1.55; transition: color 0.25s; }
-  .teaser-btn  {
-    display: inline-block; margin-top: 24px;
-    padding: 11px 24px; border-radius: 100px; border: none;
-    background: var(--btn-bg); color: var(--btn-text);
-    font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
-    transition: opacity 0.15s, transform 0.12s, background 0.25s, color 0.25s;
-  }
-  .teaser-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-  .teaser-btn:active { transform: scale(0.97); }
-
   .brand { font-family: 'Pacifico', cursive; font-size: 22px; color: var(--accent); margin-bottom: 18px; display: block; transition: color 0.25s; }
 
-  /* Animazioni */
-  @keyframes fade-out { to { opacity: 0; transform: scale(0.96); } }
+  /* Animazione entrata */
   @keyframes slide-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-  .is-out { animation: fade-out 0.2s ease forwards; pointer-events: none; }
   .is-in  { animation: slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
 </style>
 </head>
@@ -90,7 +74,7 @@
          </a>`
       : '';
 
-    const contentHtml = `
+    app.innerHTML = `
       <div class="reply-logo">vuoistareconme</div>
       <div class="card center-card is-in">
         ${chosen.img ? `<img class="card-img-header" src="${escAttr(chosen.img)}" alt="">` : ''}
@@ -106,27 +90,6 @@
           <a href="${VSCM.buildUrl('edit.html', { t: token })}" style="color:var(--text-tertiary)">✏️ Modifica questo link</a>
         </div>
       </div>`;
-
-    function revealContent() {
-      document.getElementById('teaser').classList.add('is-out');
-      setTimeout(() => { app.innerHTML = contentHtml; }, 200);
-    }
-
-    const teaserMsg = payload.r
-      ? `${esc(payload.r)} ti ha risposto`
-      : 'hai ricevuto una risposta';
-
-    app.innerHTML = `
-      <div class="reply-logo">vuoistareconme</div>
-      <div class="card center-card" id="teaser">
-        <div class="teaser-body">
-          ${payload.s ? `<p class="teaser-addr">${esc(payload.s)},</p>` : ''}
-          <p class="teaser-msg">${teaserMsg}</p>
-          <button class="teaser-btn" id="reveal-btn">Clicca qui per vedere</button>
-        </div>
-      </div>`;
-
-    document.getElementById('reveal-btn').addEventListener('click', revealContent);
   }
 
   function iconFallback(label) {
