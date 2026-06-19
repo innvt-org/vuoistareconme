@@ -12,6 +12,10 @@
 <style>
   body { justify-content: center; min-height: 100vh; padding: 20px; }
   .brand { font-family: 'Pacifico', cursive; font-size: 22px; color: var(--accent); margin-bottom: 18px; display: block; transition: color 0.25s; }
+  .question-hero { font-family: 'Pacifico', cursive; margin: 8px 0 28px; line-height: 1.5; }
+  .qh-receiver { font-size: clamp(26px, 7vw, 36px); color: var(--text); margin: 0; transition: color 0.25s; }
+  .qh-question { font-size: clamp(16px, 4.5vw, 22px); color: var(--accent); margin: 6px 0; transition: color 0.25s; }
+  .qh-sender   { font-size: clamp(14px, 4vw, 18px);  color: var(--text-secondary); margin: 0; transition: color 0.25s; }
 </style>
 </head>
 <body>
@@ -34,12 +38,12 @@
       document.body.setAttribute('data-theme', payload.th);
     }
 
-    const senderHtml = payload.s
-      ? `<div class="sender-tag">da ${esc(payload.s)}</div>`
-      : '';
-    const receiverHtml = payload.r
-      ? `<div class="receiver">per <strong>${esc(payload.r)}</strong></div>`
-      : '';
+    const heroHtml = `
+      <div class="question-hero">
+        ${payload.r ? `<p class="qh-receiver">${esc(payload.r)},</p>` : ''}
+        <p class="qh-question">${esc(payload.q)}</p>
+        ${payload.s ? `<p class="qh-sender">${esc(payload.s)}</p>` : ''}
+      </div>`;
 
     const optionsHtml = payload.o.map((opt, i) => `
       <button class="opt-btn" data-idx="${i}">
@@ -52,9 +56,7 @@
       <div class="card center-card">
         ${payload.img ? `<img class="card-img-header" src="${escAttr(payload.img)}" alt="">` : ''}
         <span class="brand">vuoistareconme</span>
-        ${senderHtml}
-        <div class="question">${esc(payload.q)}</div>
-        ${receiverHtml}
+        ${heroHtml}
         <div class="options">${optionsHtml}</div>
         ${payload.ft != null ? `
         <div class="ft-section">
