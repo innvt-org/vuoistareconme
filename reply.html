@@ -110,15 +110,28 @@
         </div>
       </div>`;
 
+    function buildShareText() {
+      const lines = [];
+      if (payload.r) lines.push(`${payload.r},`);
+      lines.push(replyText);
+      if (payload.s) lines.push(payload.s);
+      return lines.join('\n');
+    }
+
     document.getElementById('share-reply-btn').addEventListener('click', () => {
       const url = window.location.href;
+      const text = buildShareText();
+      const shareBody = `${text}\n\n${url}`;
       if (navigator.share) {
-        navigator.share({ url });
+        navigator.share({
+          title: payload.s ? `Risposta per ${payload.s}` : 'La mia risposta',
+          text: shareBody,
+        });
       } else {
-        navigator.clipboard.writeText(url).then(() => {
+        navigator.clipboard.writeText(shareBody).then(() => {
           const btn = document.getElementById('share-reply-btn');
           const orig = btn.textContent;
-          btn.textContent = '✓ Link copiato!';
+          btn.textContent = '✓ Risposta copiata!';
           setTimeout(() => { btn.textContent = orig; }, 2000);
         });
       }

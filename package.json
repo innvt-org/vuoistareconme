@@ -5,7 +5,5 @@
   "scripts": {
     "og": "node scripts/generate-og.mjs"
   },
-  "devDependencies": {
-    "@napi-rs/canvas": "^0.1.53"
-  }
+  "devDependencies": {}
 }
