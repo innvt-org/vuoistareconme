@@ -38,11 +38,10 @@
 
   /* Blocco domanda */
   .question-hero { font-family: 'Pacifico', cursive; margin: 0 0 24px; line-height: 1.55; }
-  .qh-names { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .qh-line { font-size: clamp(20px, 5.5vw, 28px); margin: 0; }
-  .qh-receiver { color: var(--text);           transition: color 0.25s; text-align: right; }
-  .qh-question { color: var(--accent);         transition: color 0.25s; text-align: center; }
-  .qh-sender   { color: var(--text-secondary); transition: color 0.25s; text-align: left; }
+  .qh-line { font-size: clamp(20px, 5.5vw, 28px); margin: 0; color: var(--accent); transition: color 0.25s; }
+  .qh-receiver { text-align: left; }
+  .qh-question { text-align: center; }
+  .qh-sender   { text-align: right; }
 
   .req-card { box-shadow: 0 6px 32px rgba(0,0,0,0.13); }
 
@@ -77,12 +76,9 @@
     // Pre-calcolo HTML della fase contenuto
     const heroHtml = `
       <div class="question-hero">
-        ${(payload.s || payload.r) ? `
-        <div class="qh-names">
-          <p class="qh-line qh-sender">${esc(payload.s)}</p>
-          <p class="qh-line qh-receiver">${esc(payload.r)}</p>
-        </div>` : ''}
+        ${payload.r ? `<p class="qh-line qh-receiver">${esc(payload.r)},</p>` : ''}
         <p class="qh-line qh-question">${esc(lcFirst(payload.q))}</p>
+        ${payload.s ? `<p class="qh-line qh-sender">${esc(payload.s)}</p>` : ''}
       </div>`;
 
     const optionsHtml = payload.o.map((opt, i) => `
