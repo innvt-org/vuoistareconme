@@ -162,13 +162,13 @@
 
   function renderImg(raw) {
     const { url, type, ytId } = VSCM.resolveImg(raw);
-    if (!url) return '';
     if (type === 'youtube') {
-      return `<a href="https://www.youtube.com/watch?v=${escAttr(ytId)}" target="_blank" rel="noopener" class="card-img-link">
-        <img class="card-img-header" src="${escAttr(url)}" alt="">
-        <span class="card-img-play">▶</span>
-      </a>`;
+      return `<div class="card-video-wrap"><iframe class="card-video"
+        src="https://www.youtube.com/embed/${escAttr(ytId)}"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+        allowfullscreen></iframe></div>`;
     }
+    if (!url) return '';
     return `<img class="card-img-header" src="${escAttr(url)}" alt="">`;
   }
 

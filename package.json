@@ -1,0 +1,11 @@
+{
+  "name": "vuoistareconme",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "og": "node scripts/generate-og.mjs"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}

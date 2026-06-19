@@ -624,13 +624,18 @@ button { font-family: inherit; cursor: pointer; }
 .site-footer a { color: var(--text-tertiary); text-decoration: none; }
 .site-footer a:hover { text-decoration: underline; }
 
-/* ── YouTube card overlay ── */
+/* ── YouTube embed ── */
 
-.card-img-link { display: block; position: relative; }
-.card-img-play {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 48px; color: #fff;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-  pointer-events: none;
+.card-video-wrap {
+  display: block;
+  width: calc(100% + 56px);
+  margin: -36px -28px 24px;
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+.card-video {
+  width: 100%; height: 100%;
+  border: none; display: block;
 }
