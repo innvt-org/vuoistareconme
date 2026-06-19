@@ -87,6 +87,43 @@
     z-index: 1;
     max-width: 320px;
   }
+
+  .option-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .remove-opt-btn {
+    border: none;
+    background: none;
+    font-size: 20px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 2px 6px;
+    line-height: 1;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s;
+  }
+  .remove-opt-btn:hover { color: var(--text); background: var(--bg); }
+
+  .btn-add-option {
+    width: 100%;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    border: 1.5px dashed var(--border-strong);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-top: 4px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .btn-add-option:hover {
+    background: var(--opt-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 </style>
 </head>
 <body>
@@ -158,6 +195,7 @@
   <div class="section">
     <p class="section-title">Opzioni di risposta</p>
     <div id="options-container"></div>
+    <button type="button" class="btn-add-option" id="add-option-btn">+ Aggiungi risposta</button>
   </div>
 
   <!-- Preview e azioni -->
@@ -256,10 +294,14 @@ const container = document.getElementById('options-container');
 function renderOptionBlocks() {
   container.innerHTML = '';
   options.forEach((opt, i) => {
+    const canRemove = options.length > 2;
     const block = document.createElement('div');
     block.className = 'option-block';
     block.innerHTML = `
-      <p class="label" style="margin-top:0">Opzione ${i + 1}</p>
+      <div class="option-header">
+        <p class="label" style="margin:0">Opzione ${i + 1}</p>
+        ${canRemove ? `<button type="button" class="remove-opt-btn" data-idx="${i}" title="Rimuovi">×</button>` : ''}
+      </div>
       <div class="option-top-row">
         <button type="button" class="emoji-btn" data-idx="${i}">${escHtml(opt.icon)}</button>
         <input type="text" class="opt-label-input" data-idx="${i}"
@@ -282,11 +324,25 @@ function renderOptionBlocks() {
     `;
     container.appendChild(block);
   });
+  const addBtn = document.getElementById('add-option-btn');
+  if (addBtn) addBtn.style.display = options.length < 5 ? '' : 'none';
 }
 
 container.addEventListener('click', e => {
   const btn = e.target.closest('.emoji-btn');
-  if (btn) { openPicker(parseInt(btn.dataset.idx), btn); e.stopPropagation(); }
+  if (btn) { openPicker(parseInt(btn.dataset.idx), btn); e.stopPropagation(); return; }
+
+  const rmBtn = e.target.closest('.remove-opt-btn');
+  if (rmBtn) {
+    const idx = parseInt(rmBtn.dataset.idx);
+    if (!isNaN(idx) && options.length > 2) {
+      options.splice(idx, 1);
+      linkStates.splice(idx, 1);
+      renderOptionBlocks();
+      restoreLinkUi();
+      updatePreview();
+    }
+  }
 });
 
 container.addEventListener('input', e => {
@@ -439,6 +495,14 @@ function escHtml(str) {
   return d.innerHTML;
 }
 function escAttr(str) { return (str || '').replace(/"/g, '&quot;'); }
+
+document.getElementById('add-option-btn').addEventListener('click', () => {
+  if (options.length >= 5) return;
+  options.push({ label: '', icon: '💬', msg: '', link: '' });
+  linkStates.push({ type: '', value: '' });
+  renderOptionBlocks();
+  updatePreview();
+});
 
 loadDraft();
 updatePreview();

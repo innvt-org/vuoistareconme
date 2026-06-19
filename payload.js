@@ -84,7 +84,8 @@ const VSCM = (() => {
    * Es: request.html#t=BASE64
    */
   function buildUrl(path, params) {
-    const url = new URL(path, window.location.origin);
+    // Usa href (non solo origin) come base: risolve correttamente anche da sottodirectory
+    const url = new URL(path, window.location.href);
     const sp = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') sp.set(k, v);
