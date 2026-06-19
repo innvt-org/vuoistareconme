@@ -56,13 +56,15 @@ const VSCM = (() => {
       obj.s  = obj.s  || '';
       obj.r  = obj.r  || '';
       obj.q  = obj.q  || '';
-      obj.th = obj.th || 'violet';
+      obj.th  = obj.th  || 'violet';
+      obj.img = obj.img || '';
       obj.o  = Array.isArray(obj.o) ? obj.o : [];
       obj.o  = obj.o.map(opt => ({
         label: (opt && opt.label) || '',
         icon:  (opt && opt.icon)  || '',
         msg:   (opt && opt.msg)   || '',
-        link:  (opt && opt.link)  || ''
+        link:  (opt && opt.link)  || '',
+        img:   (opt && opt.img)   || ''
       }));
       obj.ft = (obj.ft && typeof obj.ft === 'object') ? {
         label: obj.ft.label || '',

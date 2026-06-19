@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>vuoistareconme — crea il tuo link</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❓</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
@@ -189,6 +190,8 @@
         <span class="check">✓</span>
       </button>
     </div>
+    <p class="label">Immagine header (opzionale)</p>
+    <input type="text" id="img-header" placeholder="https://… (.jpg, .gif, …)">
   </div>
 
   <!-- Opzioni -->
@@ -240,9 +243,9 @@ let currentTheme = 'violet';
 let freeText = null; // { label, msg } | null
 
 const options = [
-  { label: 'Sì',         icon: '❤️', msg: 'Sono felicissimo, scrivimi appena puoi!', link: '' },
-  { label: 'No',         icon: '💔', msg: 'Grazie comunque per la sincerità.',       link: '' },
-  { label: 'Parliamone', icon: '💬', msg: 'Va bene, parliamone con calma.',          link: '' }
+  { label: 'Sì',         icon: '❤️', msg: 'Sono felicissimo, scrivimi appena puoi!', link: '', img: '' },
+  { label: 'No',         icon: '💔', msg: 'Grazie comunque per la sincerità.',       link: '', img: '' },
+  { label: 'Parliamone', icon: '💬', msg: 'Va bene, parliamone con calma.',          link: '', img: '' }
 ];
 
 const linkStates = options.map(() => ({ type: '', value: '' }));
@@ -333,6 +336,8 @@ function renderOptionBlocks() {
         <input type="text" class="link-value-input" data-idx="${i}" placeholder="" style="display:none">
         <span class="link-hint" data-idx="${i}" style="display:none"></span>
       </div>
+      <p class="label">Immagine risposta (opzionale)</p>
+      <input type="text" class="opt-img-input" data-idx="${i}" placeholder="https://… (.jpg, .gif, …)" value="${escAttr(opt.img)}">
     `;
     container.appendChild(block);
   });
@@ -366,6 +371,8 @@ container.addEventListener('input', e => {
     options[idx].msg = e.target.value; updatePreview();
   } else if (e.target.classList.contains('link-value-input')) {
     linkStates[idx].value = e.target.value; rebuildLink(idx);
+  } else if (e.target.classList.contains('opt-img-input')) {
+    options[idx].img = e.target.value; updatePreview();
   }
 });
 
@@ -406,7 +413,8 @@ function buildPayload() {
     r:  document.getElementById('receiver').value.trim(),
     q:  document.getElementById('question').value.trim(),
     th: currentTheme,
-    o:  options.map(o => ({ label: o.label, icon: o.icon, msg: o.msg, link: o.link }))
+    img: document.getElementById('img-header').value.trim(),
+    o:  options.map(o => ({ label: o.label, icon: o.icon, msg: o.msg, link: o.link, img: o.img }))
   };
   if (freeText) p.ft = { label: freeText.label, msg: freeText.msg };
   return p;
@@ -426,6 +434,7 @@ function updatePreview() {
 document.getElementById('sender').addEventListener('input', updatePreview);
 document.getElementById('receiver').addEventListener('input', updatePreview);
 document.getElementById('question').addEventListener('input', updatePreview);
+document.getElementById('img-header').addEventListener('input', updatePreview);
 
 document.getElementById('copy-btn').addEventListener('click', () => {
   navigator.clipboard.writeText(document.getElementById('url-preview').textContent).then(() => {
@@ -485,15 +494,17 @@ function loadDraft() {
   if (stored) {
     const p = VSCM.decode(stored);
     if (p) {
-      document.getElementById('sender').value   = p.s;
-      document.getElementById('receiver').value = p.r;
-      document.getElementById('question').value = p.q;
+      document.getElementById('sender').value     = p.s;
+      document.getElementById('receiver').value   = p.r;
+      document.getElementById('question').value   = p.q;
+      document.getElementById('img-header').value = p.img || '';
       p.o.forEach((o, i) => {
         if (i >= options.length) return;
         options[i].label = o.label || options[i].label;
         options[i].icon  = o.icon  || options[i].icon;
         options[i].msg   = o.msg   || options[i].msg;
         options[i].link  = o.link  || '';
+        options[i].img   = o.img   || '';
         linkStates[i]    = detectLinkType(o.link);
       });
       if (p.th) applyTheme(p.th);
@@ -548,7 +559,7 @@ document.getElementById('ft-msg').addEventListener('input', e => {
 
 document.getElementById('add-option-btn').addEventListener('click', () => {
   if (options.length >= 5) return;
-  options.push({ label: '', icon: '💬', msg: '', link: '' });
+  options.push({ label: '', icon: '💬', msg: '', link: '', img: '' });
   linkStates.push({ type: '', value: '' });
   renderOptionBlocks();
   updatePreview();

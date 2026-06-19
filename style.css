@@ -404,6 +404,17 @@ button { font-family: inherit; cursor: pointer; }
   font-family: ui-monospace, monospace;
 }
 
+/* ── Card header image ── */
+
+.card-img-header {
+  display: block;
+  width: calc(100% + 56px);
+  margin: -36px -28px 24px;
+  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+  max-height: 220px;
+  object-fit: cover;
+}
+
 /* ── Request page ── */
 
 .card.center-card {
