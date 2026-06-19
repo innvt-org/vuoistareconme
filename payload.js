@@ -1,28 +1,3 @@
-/**
- * payload.js
- * Codifica/decodifica del payload condiviso tra /edit, /request e /reply.
- *
- * Il payload viaggia nel frammento URL (#t=…) e non nella query string,
- * così il browser non invia mai il dato al server e i log restano puliti.
- *
- * Struttura payload:
- * {
- *   s:  string,           // nome di chi manda (mittente)
- *   r:  string,           // nome di chi riceve (destinatario)
- *   q:  string,           // testo della domanda
- *   th: string,           // tema colore: "violet"|"rose"|"sky"|"forest"|"sunset"|"dark"
- *   o: [                  // opzioni di risposta, in ordine
- *     {
- *       label: string,    // testo bottone, es. "Sì"
- *       icon:  string,    // emoji, es. "❤️" — campo esplicito, non dedotto dal testo
- *       msg:   string,    // messaggio mostrato in /reply
- *       link:  string     // URL già costruito (wa.me/…, ecc.) — può essere ""
- *     },
- *     ...
- *   ]
- * }
- */
-
 const VSCM = (() => {
 
   function toBase64Url(str) {
@@ -44,31 +19,59 @@ const VSCM = (() => {
     return new TextDecoder().decode(bytes);
   }
 
+  // Encode: omette campi vuoti/default e usa chiavi corte per le opzioni.
+  // Chiavi opzione: l=label, i=icon, m=msg, k=link, g=img.
+  // Chiave root immagine: p (picture).
+  // th "violet" viene omesso (è il default).
   function encode(payloadObj) {
-    return toBase64Url(JSON.stringify(payloadObj));
+    const out = {};
+    if (payloadObj.s) out.s = payloadObj.s;
+    if (payloadObj.r) out.r = payloadObj.r;
+    if (payloadObj.q) out.q = payloadObj.q;
+    if (payloadObj.th && payloadObj.th !== 'violet') out.th = payloadObj.th;
+    if (payloadObj.img) out.p = payloadObj.img;
+    if (payloadObj.ft) {
+      const ft = {};
+      if (payloadObj.ft.label) ft.l = payloadObj.ft.label;
+      if (payloadObj.ft.msg)   ft.m = payloadObj.ft.msg;
+      out.ft = ft;
+    }
+    out.o = (payloadObj.o || []).map(opt => {
+      const o = {};
+      if (opt.label) o.l = opt.label;
+      if (opt.icon)  o.i = opt.icon;
+      if (opt.msg)   o.m = opt.msg;
+      if (opt.link)  o.k = opt.link;
+      if (opt.img)   o.g = opt.img;
+      return o;
+    });
+    return toBase64Url(JSON.stringify(out));
   }
 
+  // Decode: normalizza sia il formato compatto (chiavi corte) sia il vecchio
+  // formato (chiavi lunghe) per backward-compat con link già condivisi.
   function decode(token) {
     if (!token) return null;
     try {
       const obj = JSON.parse(fromBase64Url(token));
       if (!obj || typeof obj !== 'object') return null;
-      obj.s  = obj.s  || '';
-      obj.r  = obj.r  || '';
-      obj.q  = obj.q  || '';
+      obj.s   = obj.s   || '';
+      obj.r   = obj.r   || '';
+      obj.q   = obj.q   || '';
       obj.th  = obj.th  || 'violet';
-      obj.img = obj.img || '';
-      obj.o  = Array.isArray(obj.o) ? obj.o : [];
-      obj.o  = obj.o.map(opt => ({
-        label: (opt && opt.label) || '',
-        icon:  (opt && opt.icon)  || '',
-        msg:   (opt && opt.msg)   || '',
-        link:  (opt && opt.link)  || '',
-        img:   (opt && opt.img)   || ''
+      obj.img = obj.p   || obj.img || '';   // 'p' nuovo, 'img' vecchio
+      obj.o   = Array.isArray(obj.o) ? obj.o : [];
+      obj.o   = obj.o.map(opt => ({
+        label: (opt && (opt.l !== undefined ? opt.l : opt.label)) || '',
+        icon:  (opt && (opt.i !== undefined ? opt.i : opt.icon))  || '',
+        msg:   (opt && (opt.m !== undefined ? opt.m : opt.msg))   || '',
+        link:  (opt && (opt.k !== undefined ? opt.k : opt.link))  || '',
+        img:   (opt && (opt.g !== undefined ? opt.g : opt.img))   || ''
       }));
-      obj.ft = (obj.ft && typeof obj.ft === 'object') ? {
-        label: obj.ft.label || '',
-        msg:   obj.ft.msg   || ''
+      const ft = obj.ft;
+      obj.ft = (ft && typeof ft === 'object') ? {
+        label: (ft.l !== undefined ? ft.l : ft.label) || '',
+        msg:   (ft.m !== undefined ? ft.m : ft.msg)   || ''
       } : null;
       return obj;
     } catch (e) {
@@ -76,21 +79,12 @@ const VSCM = (() => {
     }
   }
 
-  /**
-   * Legge un parametro dal frammento URL (#key=val&…).
-   * Il frammento non viene mai inviato al server → i log restano puliti.
-   */
   function getParam(name) {
-    const hash = window.location.hash.slice(1); // rimuove il '#' iniziale
+    const hash = window.location.hash.slice(1);
     return new URLSearchParams(hash).get(name);
   }
 
-  /**
-   * Costruisce un URL con i parametri nel frammento, non nella query string.
-   * Es: request.html#t=BASE64
-   */
   function buildUrl(path, params) {
-    // Usa href (non solo origin) come base: risolve correttamente anche da sottodirectory
     const url = new URL(path, window.location.href);
     const sp = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
