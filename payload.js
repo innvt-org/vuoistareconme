@@ -1,42 +1,22 @@
+// Richiede lz-string.min.js caricato prima di questo file.
+
 const VSCM = (() => {
 
-  function toBase64Url(str) {
-    const utf8Bytes = new TextEncoder().encode(str);
-    let binary = '';
-    utf8Bytes.forEach(b => { binary += String.fromCharCode(b); });
-    return btoa(binary)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-  }
-
-  function fromBase64Url(b64url) {
-    let b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4) b64 += '=';
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return new TextDecoder().decode(bytes);
-  }
-
-  // Encode: omette campi vuoti/default e usa chiavi corte per le opzioni.
-  // Chiavi opzione: l=label, i=icon, m=msg, k=link, g=img.
-  // Chiave root immagine: p (picture).
-  // th "violet" viene omesso (è il default).
-  function encode(payloadObj) {
+  // Costruisce il JSON compatto (campi vuoti/default omessi, chiavi corte).
+  function buildCompact(p) {
     const out = {};
-    if (payloadObj.s) out.s = payloadObj.s;
-    if (payloadObj.r) out.r = payloadObj.r;
-    if (payloadObj.q) out.q = payloadObj.q;
-    if (payloadObj.th && payloadObj.th !== 'violet') out.th = payloadObj.th;
-    if (payloadObj.img) out.p = payloadObj.img;
-    if (payloadObj.ft) {
+    if (p.s)  out.s  = p.s;
+    if (p.r)  out.r  = p.r;
+    if (p.q)  out.q  = p.q;
+    if (p.th && p.th !== 'violet') out.th = p.th;
+    if (p.img) out.p = p.img;
+    if (p.ft)  {
       const ft = {};
-      if (payloadObj.ft.label) ft.l = payloadObj.ft.label;
-      if (payloadObj.ft.msg)   ft.m = payloadObj.ft.msg;
+      if (p.ft.label) ft.l = p.ft.label;
+      if (p.ft.msg)   ft.m = p.ft.msg;
       out.ft = ft;
     }
-    out.o = (payloadObj.o || []).map(opt => {
+    out.o = (p.o || []).map(opt => {
       const o = {};
       if (opt.label) o.l = opt.label;
       if (opt.icon)  o.i = opt.icon;
@@ -45,21 +25,33 @@ const VSCM = (() => {
       if (opt.img)   o.g = opt.img;
       return o;
     });
-    return toBase64Url(JSON.stringify(out));
+    return out;
   }
 
-  // Decode: normalizza sia il formato compatto (chiavi corte) sia il vecchio
-  // formato (chiavi lunghe) per backward-compat con link già condivisi.
+  // LZString.compressToBase64 → base64url (sostituisce +/=/).
+  function encode(payloadObj) {
+    const json = JSON.stringify(buildCompact(payloadObj));
+    return LZString.compressToBase64(json)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  }
+
+  // base64url → base64 standard → LZString.decompressFromBase64 → JSON.parse.
   function decode(token) {
     if (!token) return null;
     try {
-      const obj = JSON.parse(fromBase64Url(token));
+      let b64 = token.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      const json = LZString.decompressFromBase64(b64);
+      if (!json) return null;
+      const obj = JSON.parse(json);
       if (!obj || typeof obj !== 'object') return null;
-      obj.s   = obj.s   || '';
-      obj.r   = obj.r   || '';
-      obj.q   = obj.q   || '';
-      obj.th  = obj.th  || 'violet';
-      obj.img = obj.p   || obj.img || '';   // 'p' nuovo, 'img' vecchio
+      obj.s   = obj.s  || '';
+      obj.r   = obj.r  || '';
+      obj.q   = obj.q  || '';
+      obj.th  = obj.th || 'violet';
+      obj.img = obj.p  || obj.img || '';
       obj.o   = Array.isArray(obj.o) ? obj.o : [];
       obj.o   = obj.o.map(opt => ({
         label: (opt && (opt.l !== undefined ? opt.l : opt.label)) || '',
