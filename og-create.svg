@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#f7f5f1"/>
+  <circle cx="120" cy="120" r="260" fill="#eeedfe" opacity="0.7"/>
+  <circle cx="1080" cy="510" r="260" fill="#eeedfe" opacity="0.7"/>
+  <text x="600" y="240" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="80" font-weight="bold" fill="#534ab7">vuoistarecon.me</text>
+  <text x="600" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="52" fill="#1a1917">❓ Crea il tuo messaggio</text>
+  <text x="600" y="450" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#68655c">Prepara il link, invialo e aspetta la risposta.</text>
+</svg>
