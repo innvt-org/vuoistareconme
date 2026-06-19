@@ -92,6 +92,7 @@
     d.textContent = str || '';
     return d.innerHTML;
   }
+  function escAttr(str) { return (str || '').replace(/"/g, '&quot;'); }
 </script>
 </body>
 </html>
