@@ -125,6 +125,22 @@
     border-color: var(--accent);
     color: var(--accent);
   }
+
+  .emoji-custom-input {
+    grid-column: 1 / -1;
+    font-size: 20px;
+    padding: 5px 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  .emoji-custom-input:focus { outline: none; border-color: var(--accent); }
+  .emoji-custom-input::placeholder { font-size: 13px; color: var(--text-tertiary); }
 </style>
 </head>
 <body>
@@ -255,7 +271,9 @@ const linkStates = options.map(() => ({ type: '', value: '' }));
 const pickerEl = document.getElementById('emoji-popover');
 let activePickerIdx = -1;
 
-pickerEl.innerHTML = EMOJI_PALETTE.map(e => `<button type="button" data-e="${e}">${e}</button>`).join('');
+pickerEl.innerHTML =
+  `<input type="text" class="emoji-custom-input" placeholder="digita o incolla…" maxlength="10">` +
+  EMOJI_PALETTE.map(e => `<button type="button" data-e="${e}">${e}</button>`).join('');
 
 pickerEl.addEventListener('click', e => {
   const emoji = e.target.getAttribute('data-e');
@@ -266,10 +284,21 @@ pickerEl.addEventListener('click', e => {
   updatePreview();
 });
 
+pickerEl.addEventListener('input', e => {
+  if (!e.target.classList.contains('emoji-custom-input')) return;
+  const val = e.target.value.trim();
+  if (activePickerIdx < 0) return;
+  options[activePickerIdx].icon = val;
+  document.querySelector(`.emoji-btn[data-idx="${activePickerIdx}"]`).textContent = val || '?';
+  updatePreview();
+});
+
 function openPicker(idx, btn) {
   if (activePickerIdx === idx) { closePicker(); return; }
   activePickerIdx = idx;
   pickerEl.style.display = 'grid';
+  const customInput = pickerEl.querySelector('.emoji-custom-input');
+  if (customInput) { customInput.value = options[idx].icon || ''; customInput.focus(); }
   const rect = btn.getBoundingClientRect();
   pickerEl.style.top  = (rect.bottom + 6) + 'px';
   pickerEl.style.left = rect.left + 'px';
