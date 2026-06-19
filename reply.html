@@ -49,6 +49,17 @@
   .rh-msg      { text-align: center; color: var(--accent); padding: 16px 10%; }
   .rh-sender   { text-align: right;  color: var(--text); }
 
+  .extra-section {
+    margin-top: 20px; padding-top: 16px;
+    border-top: 1px solid var(--border);
+    text-align: left;
+  }
+  .extra-section .label { margin-top: 12px; }
+  .extra-section .label:first-child { margin-top: 0; }
+  .extra-img-preview { margin-top: 8px; border-radius: var(--radius-md); overflow: hidden; display: none; }
+  .extra-img-preview img { width: 100%; max-height: 160px; object-fit: cover; display: block; }
+  .extra-img-preview .img-hint { font-size: 12px; color: var(--text-secondary); padding: 6px 0 2px; line-height: 1.5; }
+
   /* Animazione entrata */
   @keyframes slide-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   .is-in  { animation: slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
@@ -60,9 +71,36 @@
 <script src="lz-string.min.js"></script>
 <script src="payload.js"></script>
 <script>
-  const token     = VSCM.getParam('t');
-  const answerIdx = VSCM.getParam('a');
-  const freeMsg   = VSCM.getParam('m');
+  const REPLY_KEY = 'vscm_reply';
+
+  function loadReplyState() {
+    try {
+      const raw = localStorage.getItem(REPLY_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) { return null; }
+  }
+
+  function saveReplyState(state) {
+    try { localStorage.setItem(REPLY_KEY, JSON.stringify(state)); } catch (_) {}
+  }
+
+  let token     = VSCM.getParam('t');
+  let answerIdx = VSCM.getParam('a');
+  let freeMsg   = VSCM.getParam('m');
+
+  if (!token || answerIdx == null) {
+    const saved = loadReplyState();
+    if (saved?.t && saved.a != null) {
+      const params = { t: saved.t, a: saved.a };
+      if (saved.m) params.m = saved.m;
+      location.replace(VSCM.buildUrl('reply.html', params));
+    }
+  }
+
+  token     = VSCM.getParam('t');
+  answerIdx = VSCM.getParam('a');
+  freeMsg   = VSCM.getParam('m');
+
   const payload   = VSCM.decode(token);
   const app       = document.getElementById('app');
 
@@ -103,6 +141,27 @@
           ${payload.s ? `<p class="rh-line rh-sender">${esc(payload.s)}</p>` : ''}
         </div>
         ${continueHtml}
+        <div class="extra-section">
+          <p class="label">Aggiungi qualcosa per ${esc(payload.s) || 'chi ti ha scritto'} (opzionale)</p>
+          <p class="label">Messaggio</p>
+          <textarea class="ft-textarea" id="extra-note" placeholder="…"></textarea>
+          <p class="label">Link «Continua →»</p>
+          <div class="link-builder">
+            <select id="extra-link-type">
+              <option value="">— nessun link —</option>
+              <option value="wa">📱 WhatsApp</option>
+              <option value="ig">📸 Instagram</option>
+              <option value="tg">✈️ Telegram</option>
+              <option value="sc">👻 Snapchat</option>
+              <option value="url">🔗 URL libero</option>
+            </select>
+            <input type="text" id="extra-link-value" placeholder="" style="display:none">
+            <span class="link-hint" id="extra-link-hint" style="display:none"></span>
+          </div>
+          <p class="label">Immagine</p>
+          <input type="text" id="extra-img" placeholder="https://… (.jpg, .gif, …)">
+          <div class="extra-img-preview" id="extra-img-preview"></div>
+        </div>
         <button class="share-reply-btn" id="share-reply-btn">Invia la risposta a ${esc(payload.s) || 'chi ti ha scritto'}</button>
         <div class="privacy-note">Questa pagina è visibile a chiunque abbia il link, senza login.</div>
         <div class="privacy-note" style="margin-top:10px">
@@ -110,28 +169,118 @@
         </div>
       </div>`;
 
-    function buildShareText() {
-      const lines = [];
-      if (payload.r) lines.push(`${payload.r},`);
-      lines.push(replyText);
-      if (payload.s) lines.push(payload.s);
-      return lines.join('\n');
+    const LINK_TYPES = {
+      wa:  { ph: 'numero es. 393391234567', hint: '→ wa.me/…',         build: v => `https://wa.me/${v.replace(/\D/g,'')}` },
+      ig:  { ph: 'username (senza @)',      hint: '→ instagram.com/…', build: v => `https://instagram.com/${v.replace(/^@/,'')}` },
+      tg:  { ph: 'username (senza @)',      hint: '→ t.me/…',          build: v => `https://t.me/${v.replace(/^@/,'')}` },
+      sc:  { ph: 'username',                hint: '→ snapchat.com/add/…', build: v => `https://snapchat.com/add/${v}` },
+      url: { ph: 'https://…',              hint: '',                   build: v => v }
+    };
+
+    const linkTypeEl = document.getElementById('extra-link-type');
+    const linkValueEl = document.getElementById('extra-link-value');
+    const linkHintEl = document.getElementById('extra-link-hint');
+    const imgPreviewEl = document.getElementById('extra-img-preview');
+
+    function syncLinkUi() {
+      const type = linkTypeEl.value;
+      const cfg = LINK_TYPES[type];
+      if (!cfg) {
+        linkValueEl.style.display = 'none';
+        linkHintEl.style.display = 'none';
+        return;
+      }
+      linkValueEl.style.display = '';
+      linkValueEl.placeholder = cfg.ph;
+      linkHintEl.style.display = cfg.hint ? '' : 'none';
+      linkHintEl.textContent = cfg.hint;
+    }
+
+    function buildExtraLink() {
+      const type = linkTypeEl.value;
+      const value = linkValueEl.value.trim();
+      if (!type || !value) return '';
+      return LINK_TYPES[type].build(value);
+    }
+
+    function showExtraImgPreview() {
+      const raw = document.getElementById('extra-img').value.trim();
+      const { url, type, hint } = VSCM.resolveImg(raw);
+      if (!raw) {
+        imgPreviewEl.style.display = 'none';
+        imgPreviewEl.innerHTML = '';
+        return;
+      }
+      if (type === 'unsupported') {
+        imgPreviewEl.style.display = '';
+        imgPreviewEl.innerHTML = `<p class="img-hint">⚠️ ${hint}</p>`;
+        return;
+      }
+      if (url) {
+        imgPreviewEl.style.display = '';
+        imgPreviewEl.innerHTML = `<img src="${escAttr(url)}" alt="" onerror="this.parentElement.innerHTML='<p class=\\'img-hint\\'>⚠️ Immagine non caricata.</p>';">`;
+        return;
+      }
+      imgPreviewEl.style.display = 'none';
+    }
+
+    linkTypeEl.addEventListener('change', () => { syncLinkUi(); persistReply(); });
+    linkValueEl.addEventListener('input', persistReply);
+    document.getElementById('extra-note').addEventListener('input', persistReply);
+    document.getElementById('extra-img').addEventListener('input', () => { showExtraImgPreview(); persistReply(); });
+    syncLinkUi();
+
+    function readExtraForm() {
+      return {
+        n: document.getElementById('extra-note').value,
+        linkType: linkTypeEl.value,
+        linkValue: linkValueEl.value,
+        g: document.getElementById('extra-img').value,
+      };
+    }
+
+    function persistReply() {
+      saveReplyState({
+        t: token,
+        a: answerIdx,
+        m: freeMsg || '',
+        extra: readExtraForm(),
+      });
+    }
+
+    const saved = loadReplyState();
+    if (saved?.t === token && String(saved.a) === String(answerIdx) && saved.extra) {
+      document.getElementById('extra-note').value = saved.extra.n || '';
+      linkTypeEl.value = saved.extra.linkType || '';
+      linkValueEl.value = saved.extra.linkValue || '';
+      document.getElementById('extra-img').value = saved.extra.g || '';
+      syncLinkUi();
+      showExtraImgPreview();
+    }
+
+    persistReply();
+
+    function buildNotifyUrl() {
+      const params = { t: token, a: answerIdx };
+      if (freeMsg) params.m = freeMsg;
+      const note = document.getElementById('extra-note').value.trim();
+      const link = buildExtraLink();
+      const img = document.getElementById('extra-img').value.trim();
+      if (note) params.n = note;
+      if (link) params.k = link;
+      if (img) params.g = img;
+      return VSCM.buildUrl('notify.html', params);
     }
 
     document.getElementById('share-reply-btn').addEventListener('click', () => {
-      const url = window.location.href;
-      const text = buildShareText();
-      const shareBody = `${text}\n\n${url}`;
+      const url = buildNotifyUrl();
       if (navigator.share) {
-        navigator.share({
-          title: payload.s ? `Risposta per ${payload.s}` : 'La mia risposta',
-          text: shareBody,
-        });
+        navigator.share({ url });
       } else {
-        navigator.clipboard.writeText(shareBody).then(() => {
+        navigator.clipboard.writeText(url).then(() => {
           const btn = document.getElementById('share-reply-btn');
           const orig = btn.textContent;
-          btn.textContent = '✓ Risposta copiata!';
+          btn.textContent = '✓ Link copiato!';
           setTimeout(() => { btn.textContent = orig; }, 2000);
         });
       }

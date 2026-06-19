@@ -96,7 +96,8 @@ const VSCM = (() => {
     const url = new URL(path, window.location.href);
     const sp = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== '') sp.set(k, v);
+      if (v === undefined || v === null || v === '') return;
+      sp.set(k, v);
     });
     url.hash = sp.toString();
     return url.toString();

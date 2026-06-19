@@ -1,5 +1,5 @@
 #!/bin/sh
-# Genera og-create.svg/png e og-discover.svg/png (PNG raster del SVG).
+# Genera og-create/og-discover/og-notify .svg/.png (PNG raster del SVG).
 # Uso: ./scripts/gen-og.sh
 set -e
 cd "$(dirname "$0")/.."

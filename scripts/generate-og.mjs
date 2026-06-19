@@ -19,6 +19,7 @@ const PACIFICO = {
 const TWEMOJI = {
   '❓': 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2753.svg',
   '💌': 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f48c.svg',
+  '💬': 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4ac.svg',
 };
 
 const CARDS = [
@@ -38,6 +39,15 @@ const CARDS = [
     emojiSize: 72,
     message: 'Hai ricevuto un messaggio segreto',
     cta: 'Clicca per scoprire',
+    ctaWidth: 460,
+  },
+  {
+    svg: 'og-notify.svg',
+    png: 'og-notify.png',
+    emoji: '💬',
+    emojiSize: 64,
+    message: 'Hai ricevuto una risposta',
+    cta: 'Clicca per scoprirla',
     ctaWidth: 460,
   },
 ];
