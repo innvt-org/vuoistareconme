@@ -306,7 +306,7 @@ const container = document.getElementById('options-container');
 function renderOptionBlocks() {
   container.innerHTML = '';
   options.forEach((opt, i) => {
-    const canRemove = options.length > 2;
+    const canRemove = options.length > 1;
     const block = document.createElement('div');
     block.className = 'option-block';
     block.innerHTML = `
@@ -347,7 +347,7 @@ container.addEventListener('click', e => {
   const rmBtn = e.target.closest('.remove-opt-btn');
   if (rmBtn) {
     const idx = parseInt(rmBtn.dataset.idx);
-    if (!isNaN(idx) && options.length > 2) {
+    if (!isNaN(idx) && options.length > 1) {
       options.splice(idx, 1);
       linkStates.splice(idx, 1);
       renderOptionBlocks();
