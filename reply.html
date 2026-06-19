@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vuoistareconme — risposta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  body { justify-content: center; min-height: 100vh; padding: 20px; }
+  .brand { font-family: 'Pacifico', cursive; font-size: 22px; color: var(--accent); margin-bottom: 18px; display: block; transition: color 0.25s; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="payload.js"></script>
+<script>
+  const token     = VSCM.getParam('t');
+  const answerIdx = VSCM.getParam('a');
+  const payload   = VSCM.decode(token);
+  const app       = document.getElementById('app');
+
+  const idx    = parseInt(answerIdx, 10);
+  const chosen = payload && payload.o && !isNaN(idx) ? payload.o[idx] : null;
+
+  if (!payload || !chosen) {
+    app.innerHTML = `
+      <div class="card error-box">
+        <p style="font-size:15px;margin:0 0 6px">Risposta non trovata.</p>
+        <p class="hint">Il link potrebbe essere incompleto o non valido.</p>
+      </div>
+    `;
+  } else {
+    if (payload.th && payload.th !== 'violet') {
+      document.body.setAttribute('data-theme', payload.th);
+    }
+
+    const icon = chosen.icon || iconFallback(chosen.label);
+
+    const pairHtml = (payload.s || payload.r)
+      ? `<div class="sender-tag">${esc(payload.s)}${payload.s && payload.r ? ' ↔ ' : ''}${esc(payload.r)}</div>`
+      : '';
+
+    const questionHtml = payload.q
+      ? `<div class="reply-label">${esc(payload.q)}</div>`
+      : '';
+
+    const continueHtml = chosen.link
+      ? `<a href="${escAttr(chosen.link)}" target="_blank" rel="noopener" class="continue-btn">
+           ${platformIcon(chosen.link)} Continua
+         </a>`
+      : '';
+
+    app.innerHTML = `
+      <div class="card center-card">
+        <span class="brand">vuoistareconme</span>
+        ${pairHtml}
+        ${questionHtml}
+        <span class="reply-icon">${esc(icon)}</span>
+        <div class="reply-msg">${esc(chosen.msg || chosen.label)}</div>
+        ${continueHtml}
+        <div class="privacy-note">Questa pagina è visibile a chiunque abbia il link, senza login.</div>
+        <div class="privacy-note" style="margin-top:10px">
+          <a href="${VSCM.buildUrl('edit.html', { t: token })}" style="color:var(--text-tertiary)">✏️ Modifica questo link</a>
+        </div>
+      </div>
+    `;
+  }
+
+  function iconFallback(label) {
+    const l = (label || '').toLowerCase();
+    if (l.includes('sì') || l.includes('si')) return '❤️';
+    if (l.includes('no'))                       return '💔';
+    return '💬';
+  }
+
+  function platformIcon(url) {
+    if (!url) return '';
+    if (url.includes('wa.me'))         return '📱';
+    if (url.includes('instagram.com')) return '📸';
+    if (url.includes('t.me'))          return '✈️';
+    if (url.includes('snapchat.com'))  return '👻';
+    return '→';
+  }
+
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  function escAttr(str) {
+    return (str || '').replace(/"/g, '&quot;');
+  }
+</script>
+</body>
+</html>

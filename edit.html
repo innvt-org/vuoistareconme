@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vuoistareconme — crea il tuo link</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  body { align-items: center; }
+
+  /* ── Hero ── */
+  .page-hero {
+    text-align: center;
+    width: 100%;
+    max-width: 520px;
+    position: relative;
+    padding: 60px 52px 32px;
+    margin-bottom: 24px;
+  }
+
+  /* Giardino di fiori (decorativo, invisibile agli screen reader) */
+  .hero-garden {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .hf {
+    position: absolute;
+    line-height: 1;
+    user-select: none;
+    --r: 0deg;
+    animation: hf-float var(--d, 3.2s) ease-in-out var(--dl, 0s) infinite;
+  }
+
+  @keyframes hf-float {
+    0%, 100% { transform: translateY(0)    rotate(var(--r)); }
+    50%       { transform: translateY(-8px) rotate(var(--r)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hf { animation: none; transform: rotate(var(--r)); }
+  }
+
+  /* Posizionamento individuale — ogni fiore ha rotazione e tempistica proprie */
+  .hf-1  { font-size: 28px; top:  3%; left:  3%;  --r: -20deg; --d: 3.4s; --dl: 0s;     }
+  .hf-2  { font-size: 36px; top: -2%; left: 20%;  --r:   8deg; --d: 2.9s; --dl: -0.6s;  }
+  .hf-3  { font-size: 30px; top:  4%; left: 43%;  --r:  -5deg; --d: 3.7s; --dl: -1.2s;  }
+  .hf-4  { font-size: 34px; top: -1%; right: 18%; --r:  15deg; --d: 3.1s; --dl: -0.3s;  }
+  .hf-5  { font-size: 26px; top:  4%; right:  3%; --r: -25deg; --d: 2.8s; --dl: -0.9s;  }
+  .hf-6  { font-size: 30px; top: 40%; left:  0%;  --r:  30deg; --d: 3.5s; --dl: -1.5s;  }
+  .hf-7  { font-size: 24px; top: 42%; right:  0%; --r: -18deg; --d: 3.0s; --dl: -0.7s;  }
+  .hf-8  { font-size: 30px; bottom: 4%; left:  5%; --r:  12deg; --d: 3.3s; --dl: -1.1s; }
+  .hf-9  { font-size: 34px; bottom: 0%; left: 28%; --r: -10deg; --d: 2.7s; --dl: -0.4s; }
+  .hf-10 { font-size: 26px; bottom: 3%; left: 52%; --r:   6deg; --d: 3.6s; --dl: -1.8s; }
+  .hf-11 { font-size: 22px; bottom: 6%; right: 7%; --r:  20deg; --d: 3.2s; --dl: -0.2s; }
+  .hf-12 { font-size: 30px; bottom: 1%; right: 3%; --r: -15deg; --d: 2.9s; --dl: -1.3s; }
+
+  /* Su schermi piccoli, nasconde i fiori laterali centrali per non sovrapporre il testo */
+  @media (max-width: 380px) {
+    .hf-6, .hf-7 { display: none; }
+    .page-hero { padding: 50px 36px 24px; }
+  }
+
+  .hero-title {
+    font-family: 'Pacifico', cursive;
+    font-size: clamp(46px, 12vw, 68px);
+    line-height: 1.18;
+    color: var(--accent);
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    transition: color 0.25s;
+    text-shadow: 0 2px 16px var(--accent-soft);
+  }
+
+  .hero-sub {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 16px auto 0;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+    max-width: 320px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-hero">
+  <div class="hero-garden" aria-hidden="true">
+    <span class="hf hf-1">🌸</span>
+    <span class="hf hf-2">🌺</span>
+    <span class="hf hf-3">🌻</span>
+    <span class="hf hf-4">🌷</span>
+    <span class="hf hf-5">🌼</span>
+    <span class="hf hf-6">🌹</span>
+    <span class="hf hf-7">🌸</span>
+    <span class="hf hf-8">🌺</span>
+    <span class="hf hf-9">🌼</span>
+    <span class="hf hf-10">✨</span>
+    <span class="hf hf-11">💫</span>
+    <span class="hf hf-12">🌷</span>
+  </div>
+  <h1 class="hero-title">Vuoi stare<br>con me?</h1>
+  <p class="hero-sub">Crea il tuo link personalizzato.<br>Nessun dato salvato: tutto vive nell'URL.</p>
+</div>
+
+<div class="card">
+
+  <!-- Chi siete -->
+  <div class="section" style="padding-top:0; margin-top:0; border-top:none">
+    <p class="section-title">Chi siete</p>
+    <p class="label" style="margin-top:0">Il tuo nome</p>
+    <input type="text" id="sender" placeholder="es. Marco" value="Marco">
+    <div style="height:8px"></div>
+    <p class="label">Nome di chi riceve</p>
+    <input type="text" id="receiver" placeholder="es. Giulia" value="Giulia">
+  </div>
+
+  <!-- La domanda -->
+  <div class="section">
+    <p class="section-title">La domanda</p>
+    <input type="text" id="question" placeholder="Vuoi stare con me?" value="Vuoi stare con me?">
+  </div>
+
+  <!-- Aspetto -->
+  <div class="section">
+    <p class="section-title">Aspetto</p>
+    <p class="label" style="margin-top:0">Tema colore</p>
+    <div class="theme-picker">
+      <button class="theme-swatch selected" data-theme="violet" style="background:#534ab7" title="Viola">
+        <span class="check">✓</span>
+      </button>
+      <button class="theme-swatch" data-theme="rose" style="background:#d63068" title="Rosa">
+        <span class="check">✓</span>
+      </button>
+      <button class="theme-swatch" data-theme="sky" style="background:#1d72d4" title="Cielo">
+        <span class="check">✓</span>
+      </button>
+      <button class="theme-swatch" data-theme="forest" style="background:#2e7d44" title="Foresta">
+        <span class="check">✓</span>
+      </button>
+      <button class="theme-swatch" data-theme="sunset" style="background:#e05c18" title="Tramonto">
+        <span class="check">✓</span>
+      </button>
+      <button class="theme-swatch" data-theme="dark" style="background:#1a1922;border:1px solid #48445a" title="Notturno">
+        <span class="check">✓</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Opzioni -->
+  <div class="section">
+    <p class="section-title">Opzioni di risposta</p>
+    <div id="options-container"></div>
+  </div>
+
+  <!-- Preview e azioni -->
+  <div class="url-box" id="url-preview">—</div>
+  <div id="url-warning"></div>
+  <button class="btn-primary" id="copy-btn">Copia il link</button>
+  <button class="btn-secondary" id="open-btn">Apri anteprima →</button>
+
+</div>
+
+<!-- Emoji popover (singleton fixed) -->
+<div class="emoji-popover" id="emoji-popover" style="display:none"></div>
+
+<script src="payload.js"></script>
+<script>
+const EMOJI_PALETTE = [
+  '❤️','💚','💔','🥺','🥳','🤔','💬','🎉',
+  '🌹','✨','😍','🙏','💌','🫶','😘','🥰',
+  '👀','🎊','💫','🌙'
+];
+
+const LINK_TYPES = {
+  wa:  { label: '📱 WhatsApp',   ph: 'numero es. 393391234567', hint: '→ wa.me/…',         build: v => `https://wa.me/${v.replace(/\D/g,'')}` },
+  ig:  { label: '📸 Instagram',  ph: 'username (senza @)',      hint: '→ instagram.com/…', build: v => `https://instagram.com/${v.replace(/^@/,'')}` },
+  tg:  { label: '✈️ Telegram',   ph: 'username (senza @)',      hint: '→ t.me/…',          build: v => `https://t.me/${v.replace(/^@/,'')}` },
+  sc:  { label: '👻 Snapchat',   ph: 'username',                hint: '→ snapchat.com/add/…', build: v => `https://snapchat.com/add/${v}` },
+  url: { label: '🔗 URL libero', ph: 'https://…',              hint: '',                   build: v => v }
+};
+
+let currentTheme = 'violet';
+
+const options = [
+  { label: 'Sì',         icon: '❤️', msg: 'Sono felicissimo, scrivimi appena puoi!', link: '' },
+  { label: 'No',         icon: '💔', msg: 'Grazie comunque per la sincerità.',       link: '' },
+  { label: 'Parliamone', icon: '💬', msg: 'Va bene, parliamone con calma.',          link: '' }
+];
+
+const linkStates = options.map(() => ({ type: '', value: '' }));
+
+// ── Emoji picker ──
+
+const pickerEl = document.getElementById('emoji-popover');
+let activePickerIdx = -1;
+
+pickerEl.innerHTML = EMOJI_PALETTE.map(e => `<button type="button" data-e="${e}">${e}</button>`).join('');
+
+pickerEl.addEventListener('click', e => {
+  const emoji = e.target.getAttribute('data-e');
+  if (!emoji || activePickerIdx < 0) return;
+  options[activePickerIdx].icon = emoji;
+  document.querySelector(`.emoji-btn[data-idx="${activePickerIdx}"]`).textContent = emoji;
+  closePicker();
+  updatePreview();
+});
+
+function openPicker(idx, btn) {
+  if (activePickerIdx === idx) { closePicker(); return; }
+  activePickerIdx = idx;
+  pickerEl.style.display = 'grid';
+  const rect = btn.getBoundingClientRect();
+  pickerEl.style.top  = (rect.bottom + 6) + 'px';
+  pickerEl.style.left = rect.left + 'px';
+  requestAnimationFrame(() => {
+    const pw = pickerEl.offsetWidth;
+    if (rect.left + pw > window.innerWidth - 8) {
+      pickerEl.style.left = Math.max(8, window.innerWidth - pw - 8) + 'px';
+    }
+  });
+}
+
+function closePicker() {
+  pickerEl.style.display = 'none';
+  activePickerIdx = -1;
+}
+
+document.addEventListener('click', e => {
+  if (!pickerEl.contains(e.target) && !e.target.classList.contains('emoji-btn')) closePicker();
+});
+
+// ── Theme picker ──
+
+document.querySelectorAll('.theme-swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('selected'));
+    sw.classList.add('selected');
+    currentTheme = sw.getAttribute('data-theme');
+    document.body.setAttribute('data-theme', currentTheme === 'violet' ? '' : currentTheme);
+    updatePreview();
+  });
+});
+
+// ── Option blocks ──
+
+const container = document.getElementById('options-container');
+
+function renderOptionBlocks() {
+  container.innerHTML = '';
+  options.forEach((opt, i) => {
+    const block = document.createElement('div');
+    block.className = 'option-block';
+    block.innerHTML = `
+      <p class="label" style="margin-top:0">Opzione ${i + 1}</p>
+      <div class="option-top-row">
+        <button type="button" class="emoji-btn" data-idx="${i}">${escHtml(opt.icon)}</button>
+        <input type="text" class="opt-label-input" data-idx="${i}"
+               placeholder="testo bottone" value="${escAttr(opt.label)}" style="flex:1">
+      </div>
+      <p class="label">Messaggio mostrato dopo la risposta</p>
+      <input type="text" class="opt-msg-input" data-idx="${i}"
+             placeholder="es. Sono felicissimo!" value="${escAttr(opt.msg)}">
+      <p class="label">Link "Continua →" (opzionale)</p>
+      <div class="link-builder">
+        <select class="link-type-select" data-idx="${i}">
+          <option value="">— nessun link —</option>
+          ${Object.entries(LINK_TYPES).map(([k, v]) =>
+            `<option value="${k}">${escHtml(v.label)}</option>`
+          ).join('')}
+        </select>
+        <input type="text" class="link-value-input" data-idx="${i}" placeholder="" style="display:none">
+        <span class="link-hint" data-idx="${i}" style="display:none"></span>
+      </div>
+    `;
+    container.appendChild(block);
+  });
+}
+
+container.addEventListener('click', e => {
+  const btn = e.target.closest('.emoji-btn');
+  if (btn) { openPicker(parseInt(btn.dataset.idx), btn); e.stopPropagation(); }
+});
+
+container.addEventListener('input', e => {
+  const idx = parseInt(e.target.dataset.idx);
+  if (isNaN(idx)) return;
+  if (e.target.classList.contains('opt-label-input')) {
+    options[idx].label = e.target.value; updatePreview();
+  } else if (e.target.classList.contains('opt-msg-input')) {
+    options[idx].msg = e.target.value; updatePreview();
+  } else if (e.target.classList.contains('link-value-input')) {
+    linkStates[idx].value = e.target.value; rebuildLink(idx);
+  }
+});
+
+container.addEventListener('change', e => {
+  if (!e.target.classList.contains('link-type-select')) return;
+  const idx = parseInt(e.target.dataset.idx);
+  if (isNaN(idx)) return;
+  const type = e.target.value;
+  linkStates[idx] = { type, value: '' };
+  options[idx].link = '';
+  const vi = container.querySelector(`.link-value-input[data-idx="${idx}"]`);
+  const hi = container.querySelector(`.link-hint[data-idx="${idx}"]`);
+  if (!type) {
+    vi.style.display = 'none';
+    hi.style.display = 'none';
+  } else {
+    const cfg = LINK_TYPES[type];
+    vi.placeholder = cfg.ph;
+    vi.value = '';
+    vi.style.display = '';
+    if (cfg.hint) { hi.textContent = cfg.hint; hi.style.display = ''; }
+    else hi.style.display = 'none';
+  }
+  updatePreview();
+});
+
+function rebuildLink(idx) {
+  const { type, value } = linkStates[idx];
+  options[idx].link = (type && value.trim()) ? LINK_TYPES[type].build(value.trim()) : '';
+  updatePreview();
+}
+
+// ── Payload & preview ──
+
+function buildPayload() {
+  return {
+    s:  document.getElementById('sender').value.trim(),
+    r:  document.getElementById('receiver').value.trim(),
+    q:  document.getElementById('question').value.trim(),
+    th: currentTheme,
+    o:  options.map(o => ({ label: o.label, icon: o.icon, msg: o.msg, link: o.link }))
+  };
+}
+
+function updatePreview() {
+  const payload = buildPayload();
+  const url = VSCM.buildUrl('request.html', { t: VSCM.encode(payload) });
+  document.getElementById('url-preview').textContent = url;
+  document.getElementById('url-warning').innerHTML = url.length > 2000
+    ? `<div class="warning">Il link supera 2000 caratteri. Accorcia i messaggi.</div>`
+    : '';
+  // Salva bozza in localStorage così si può riprendere in seguito
+  try { localStorage.setItem('vscm_draft', VSCM.encode(payload)); } catch (_) {}
+}
+
+document.getElementById('sender').addEventListener('input', updatePreview);
+document.getElementById('receiver').addEventListener('input', updatePreview);
+document.getElementById('question').addEventListener('input', updatePreview);
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('url-preview').textContent).then(() => {
+    const btn = document.getElementById('copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiato!';
+    setTimeout(() => { btn.textContent = orig; }, 1800);
+  });
+});
+
+document.getElementById('open-btn').addEventListener('click', () => {
+  window.open(document.getElementById('url-preview').textContent, '_blank');
+});
+
+// ── Caricamento bozza (URL hash > localStorage) ──
+
+function detectLinkType(url) {
+  if (!url) return { type: '', value: '' };
+  if (url.includes('wa.me/'))            return { type: 'wa',  value: url.replace(/^https:\/\/wa\.me\//, '') };
+  if (url.includes('instagram.com/'))    return { type: 'ig',  value: url.replace(/^https:\/\/instagram\.com\//, '') };
+  if (url.includes('t.me/'))             return { type: 'tg',  value: url.replace(/^https:\/\/t\.me\//, '') };
+  if (url.includes('snapchat.com/add/')) return { type: 'sc',  value: url.replace(/^https:\/\/snapchat\.com\/add\//, '') };
+  return { type: 'url', value: url };
+}
+
+function restoreLinkUi() {
+  options.forEach((opt, i) => {
+    const { type, value } = linkStates[i];
+    if (!type) return;
+    const sel = container.querySelector(`.link-type-select[data-idx="${i}"]`);
+    const vi  = container.querySelector(`.link-value-input[data-idx="${i}"]`);
+    const hi  = container.querySelector(`.link-hint[data-idx="${i}"]`);
+    if (sel) sel.value = type;
+    if (vi) {
+      const cfg = LINK_TYPES[type];
+      vi.placeholder = cfg.ph;
+      vi.value = value;
+      vi.style.display = '';
+      if (hi && cfg.hint) { hi.textContent = cfg.hint; hi.style.display = ''; }
+    }
+  });
+}
+
+function applyTheme(th) {
+  currentTheme = th || 'violet';
+  document.querySelectorAll('.theme-swatch').forEach(sw => {
+    sw.classList.toggle('selected', sw.getAttribute('data-theme') === currentTheme);
+  });
+  document.body.setAttribute('data-theme', currentTheme === 'violet' ? '' : currentTheme);
+}
+
+function loadDraft() {
+  // 1) controlla hash URL (es. edit.html#t=...): permette di riaprire un link già generato
+  // 2) controlla localStorage: ripristina l'ultima sessione
+  const token  = VSCM.getParam('t');
+  const stored = token || (() => { try { return localStorage.getItem('vscm_draft'); } catch(_) {} return null; })();
+  if (stored) {
+    const p = VSCM.decode(stored);
+    if (p) {
+      document.getElementById('sender').value   = p.s;
+      document.getElementById('receiver').value = p.r;
+      document.getElementById('question').value = p.q;
+      p.o.forEach((o, i) => {
+        if (i >= options.length) return;
+        options[i].label = o.label || options[i].label;
+        options[i].icon  = o.icon  || options[i].icon;
+        options[i].msg   = o.msg   || options[i].msg;
+        options[i].link  = o.link  || '';
+        linkStates[i]    = detectLinkType(o.link);
+      });
+      if (p.th) applyTheme(p.th);
+    }
+  }
+  renderOptionBlocks();
+  restoreLinkUi();
+}
+
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+function escAttr(str) { return (str || '').replace(/"/g, '&quot;'); }
+
+loadDraft();
+updatePreview();
+</script>
+</body>
+</html>

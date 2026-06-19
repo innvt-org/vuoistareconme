@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>vuoistareconme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  body { justify-content: center; min-height: 100vh; padding: 20px; }
+  .brand { font-family: 'Pacifico', cursive; font-size: 22px; color: var(--accent); margin-bottom: 18px; display: block; transition: color 0.25s; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="payload.js"></script>
+<script>
+  const token = VSCM.getParam('t');
+  const payload = VSCM.decode(token);
+  const app = document.getElementById('app');
+
+  if (!payload || !payload.q || payload.o.length === 0) {
+    app.innerHTML = `
+      <div class="card error-box">
+        <p style="font-size:15px;margin:0 0 6px">Link non valido o incompleto.</p>
+        <p class="hint">Chiedi a chi te l'ha mandato di generarne uno nuovo.</p>
+      </div>
+    `;
+  } else {
+    if (payload.th && payload.th !== 'violet') {
+      document.body.setAttribute('data-theme', payload.th);
+    }
+
+    const senderHtml = payload.s
+      ? `<div class="sender-tag">da ${esc(payload.s)}</div>`
+      : '';
+    const receiverHtml = payload.r
+      ? `<div class="receiver">per <strong>${esc(payload.r)}</strong></div>`
+      : '';
+
+    const optionsHtml = payload.o.map((opt, i) => `
+      <button class="opt-btn" data-idx="${i}">
+        ${opt.icon ? `<span class="opt-btn-icon">${esc(opt.icon)}</span>` : ''}
+        <span class="opt-btn-label">${esc(opt.label)}</span>
+      </button>
+    `).join('');
+
+    app.innerHTML = `
+      <div class="card center-card">
+        <span class="brand">vuoistareconme</span>
+        ${senderHtml}
+        <div class="question">${esc(payload.q)}</div>
+        ${receiverHtml}
+        <div class="options">${optionsHtml}</div>
+        <div class="privacy-note">Nessun dato viene salvato — la risposta resta solo nel link successivo.</div>
+        <div class="privacy-note" style="margin-top:10px">
+          <a href="${VSCM.buildUrl('edit.html', { t: token })}" style="color:var(--text-tertiary)">✏️ Modifica questo link</a>
+        </div>
+      </div>
+    `;
+
+    app.querySelectorAll('.opt-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = btn.getAttribute('data-idx');
+        window.location.href = VSCM.buildUrl('reply.html', { t: token, a: idx });
+      });
+    });
+  }
+
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+</script>
+</body>
+</html>
