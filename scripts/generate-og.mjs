@@ -9,17 +9,19 @@ import { fileURLToPath } from 'url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-// Scarica un font TTF da Google Fonts usando UA vecchio per ottenere TTF
-async function fetchGoogleFontTTF(family) {
-  const css = await fetch(
-    `https://fonts.googleapis.com/css?family=${encodeURIComponent(family)}&subset=latin`,
-    { headers: { 'User-Agent': 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1)' } }
-  ).then(r => r.text());
+const FONTS = {
+  'Pacifico':  'https://github.com/google/fonts/raw/main/ofl/pacifico/Pacifico-Regular.ttf',
+  'Noto Sans': 'https://github.com/google/fonts/raw/main/ofl/notosans/NotoSans-Regular.ttf',
+};
 
-  const m = css.match(/src:\s*url\(([^)]+)\)/);
-  if (!m) throw new Error(`URL non trovato per ${family}:\n${css}`);
-  console.log(`Scarico ${family} da`, m[1]);
-  return Buffer.from(await fetch(m[1]).then(r => r.arrayBuffer()));
+async function fetchTTF(name) {
+  const url = FONTS[name];
+  console.log(`Scarico ${name}...`);
+  const buf = await fetch(url).then(r => {
+    if (!r.ok) throw new Error(`${name}: HTTP ${r.status}`);
+    return r.arrayBuffer();
+  });
+  return Buffer.from(buf);
 }
 
 async function svgToPng(svgFile, pngFile, fontBuffers) {
@@ -36,10 +38,9 @@ async function svgToPng(svgFile, pngFile, fontBuffers) {
   console.log('✓', pngFile);
 }
 
-console.log('Scarico font...');
 const [pacificoBuf, notoSansBuf] = await Promise.all([
-  fetchGoogleFontTTF('Pacifico'),
-  fetchGoogleFontTTF('Noto Sans'),
+  fetchTTF('Pacifico'),
+  fetchTTF('Noto Sans'),
 ]);
 
 const fonts = [pacificoBuf, notoSansBuf];
