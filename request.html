@@ -84,8 +84,8 @@
 
     app.innerHTML = `
       <div class="req-logo">vuoistareconme</div>
-      ${payload.img ? `<img class="page-hero-img" src="${escAttr(payload.img)}" alt="">` : ''}
       <div class="card center-card req-card">
+        ${payload.img ? `<img class="card-img-header" src="${escAttr(payload.img)}" alt="">` : ''}
         ${heroHtml}
         <div class="options">${optionsHtml}</div>
         ${payload.ft != null ? `
