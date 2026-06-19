@@ -535,3 +535,69 @@ button { font-family: inherit; cursor: pointer; }
   text-align: center;
   color: var(--text-secondary);
 }
+
+/* ── Free-text field (request page) ── */
+
+.ft-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+  transition: border-color 0.25s;
+}
+.ft-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+}
+.ft-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ft-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.ft-textarea::placeholder { color: var(--text-tertiary); }
+.ft-send-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s, background 0.25s, color 0.25s;
+}
+.ft-send-btn:hover { opacity: 0.88; }
+.ft-send-btn:active { transform: scale(0.98); }
+
+/* ── Free-text reply (reply page) ── */
+
+.ft-reply-quote {
+  font-size: 15px;
+  color: var(--text-secondary);
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-style: italic;
+  text-align: left;
+  word-break: break-word;
+  transition: background 0.25s, border-color 0.25s;
+}

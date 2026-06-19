@@ -196,6 +196,17 @@
     <p class="section-title">Opzioni di risposta</p>
     <div id="options-container"></div>
     <button type="button" class="btn-add-option" id="add-option-btn">+ Aggiungi risposta</button>
+    <button type="button" class="btn-add-option" id="ft-add-btn" style="margin-top:6px">+ Risposta libera</button>
+    <div id="ft-config" class="option-block" style="display:none; margin-top:10px">
+      <div class="option-header">
+        <p class="label" style="margin:0">Risposta libera</p>
+        <button type="button" class="remove-opt-btn" id="ft-remove-btn" title="Rimuovi">×</button>
+      </div>
+      <p class="label" style="margin-top:0">Testo segnaposto del campo</p>
+      <input type="text" id="ft-label" placeholder="es. Scrivi qui il tuo messaggio…">
+      <p class="label">Messaggio mostrato dopo l'invio</p>
+      <input type="text" id="ft-msg" placeholder="es. Grazie per aver scritto!">
+    </div>
   </div>
 
   <!-- Preview e azioni -->
@@ -226,6 +237,7 @@ const LINK_TYPES = {
 };
 
 let currentTheme = 'violet';
+let freeText = null; // { label, msg } | null
 
 const options = [
   { label: 'Sì',         icon: '❤️', msg: 'Sono felicissimo, scrivimi appena puoi!', link: '' },
@@ -389,13 +401,15 @@ function rebuildLink(idx) {
 // ── Payload & preview ──
 
 function buildPayload() {
-  return {
+  const p = {
     s:  document.getElementById('sender').value.trim(),
     r:  document.getElementById('receiver').value.trim(),
     q:  document.getElementById('question').value.trim(),
     th: currentTheme,
     o:  options.map(o => ({ label: o.label, icon: o.icon, msg: o.msg, link: o.link }))
   };
+  if (freeText) p.ft = { label: freeText.label, msg: freeText.msg };
+  return p;
 }
 
 function updatePreview() {
@@ -483,6 +497,7 @@ function loadDraft() {
         linkStates[i]    = detectLinkType(o.link);
       });
       if (p.th) applyTheme(p.th);
+      if (p.ft) showFtConfig(p.ft); else hideFtConfig();
     }
   }
   renderOptionBlocks();
@@ -495,6 +510,41 @@ function escHtml(str) {
   return d.innerHTML;
 }
 function escAttr(str) { return (str || '').replace(/"/g, '&quot;'); }
+
+// ── Risposta libera ──
+
+function showFtConfig(ft) {
+  freeText = ft || { label: '', msg: '' };
+  document.getElementById('ft-add-btn').style.display = 'none';
+  const cfg = document.getElementById('ft-config');
+  cfg.style.display = '';
+  document.getElementById('ft-label').value = freeText.label;
+  document.getElementById('ft-msg').value   = freeText.msg;
+}
+
+function hideFtConfig() {
+  freeText = null;
+  document.getElementById('ft-add-btn').style.display = '';
+  document.getElementById('ft-config').style.display = 'none';
+}
+
+document.getElementById('ft-add-btn').addEventListener('click', () => {
+  showFtConfig(null);
+  updatePreview();
+});
+
+document.getElementById('ft-remove-btn').addEventListener('click', () => {
+  hideFtConfig();
+  updatePreview();
+});
+
+document.getElementById('ft-label').addEventListener('input', e => {
+  if (freeText) { freeText.label = e.target.value; updatePreview(); }
+});
+
+document.getElementById('ft-msg').addEventListener('input', e => {
+  if (freeText) { freeText.msg = e.target.value; updatePreview(); }
+});
 
 document.getElementById('add-option-btn').addEventListener('click', () => {
   if (options.length >= 5) return;

@@ -19,11 +19,15 @@
 <script>
   const token     = VSCM.getParam('t');
   const answerIdx = VSCM.getParam('a');
+  const freeMsg   = VSCM.getParam('m');
   const payload   = VSCM.decode(token);
   const app       = document.getElementById('app');
 
-  const idx    = parseInt(answerIdx, 10);
-  const chosen = payload && payload.o && !isNaN(idx) ? payload.o[idx] : null;
+  const isFreeText = answerIdx === 'ft';
+  const idx        = parseInt(answerIdx, 10);
+  const chosen     = isFreeText
+    ? (payload && payload.ft)
+    : (payload && payload.o && !isNaN(idx) ? payload.o[idx] : null);
 
   if (!payload || !chosen) {
     app.innerHTML = `
@@ -37,7 +41,7 @@
       document.body.setAttribute('data-theme', payload.th);
     }
 
-    const icon = chosen.icon || iconFallback(chosen.label);
+    const icon = chosen.icon || (isFreeText ? '✍️' : iconFallback(chosen.label));
 
     const pairHtml = (payload.s || payload.r)
       ? `<div class="sender-tag">${esc(payload.s)}${payload.s && payload.r ? ' ↔ ' : ''}${esc(payload.r)}</div>`
@@ -59,6 +63,7 @@
         ${pairHtml}
         ${questionHtml}
         <span class="reply-icon">${esc(icon)}</span>
+        ${isFreeText && freeMsg ? `<div class="ft-reply-quote">${esc(freeMsg)}</div>` : ''}
         <div class="reply-msg">${esc(chosen.msg || chosen.label)}</div>
         ${continueHtml}
         <div class="privacy-note">Questa pagina è visibile a chiunque abbia il link, senza login.</div>

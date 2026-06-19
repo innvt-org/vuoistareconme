@@ -54,6 +54,13 @@
         <div class="question">${esc(payload.q)}</div>
         ${receiverHtml}
         <div class="options">${optionsHtml}</div>
+        ${payload.ft != null ? `
+        <div class="ft-section">
+          <p class="ft-label">${esc(payload.ft.label || 'Scrivi la tua risposta')}</p>
+          <textarea class="ft-textarea" id="ft-input" placeholder="…"></textarea>
+          <button class="ft-send-btn" id="ft-send">Invia</button>
+        </div>
+        ` : ''}
         <div class="privacy-note">Nessun dato viene salvato — la risposta resta solo nel link successivo.</div>
         <div class="privacy-note" style="margin-top:10px">
           <a href="${VSCM.buildUrl('edit.html', { t: token })}" style="color:var(--text-tertiary)">✏️ Modifica questo link</a>
@@ -67,6 +74,15 @@
         window.location.href = VSCM.buildUrl('reply.html', { t: token, a: idx });
       });
     });
+
+    const ftSend = document.getElementById('ft-send');
+    if (ftSend) {
+      ftSend.addEventListener('click', () => {
+        const msg = document.getElementById('ft-input').value.trim();
+        if (!msg) return;
+        window.location.href = VSCM.buildUrl('reply.html', { t: token, a: 'ft', m: msg });
+      });
+    }
   }
 
   function esc(str) {

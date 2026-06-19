@@ -64,6 +64,10 @@ const VSCM = (() => {
         msg:   (opt && opt.msg)   || '',
         link:  (opt && opt.link)  || ''
       }));
+      obj.ft = (obj.ft && typeof obj.ft === 'object') ? {
+        label: obj.ft.label || '',
+        msg:   obj.ft.msg   || ''
+      } : null;
       return obj;
     } catch (e) {
       return null;
