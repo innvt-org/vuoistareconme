@@ -2,6 +2,14 @@
 
 const VSCM = (() => {
 
+  const KEY = [0xde, 0xad, 0xbe, 0xef, 0x13, 0x37];
+
+  function xor(bytes) {
+    const out = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) out[i] = bytes[i] ^ KEY[i % KEY.length];
+    return out;
+  }
+
   // Costruisce il JSON compatto (campi vuoti/default omessi, chiavi corte).
   function buildCompact(p) {
     const out = {};
@@ -28,22 +36,30 @@ const VSCM = (() => {
     return out;
   }
 
-  // LZString.compressToBase64 → base64url (sostituisce +/=/).
+  // JSON → LZ compress (Uint8Array) → XOR → base64url.
   function encode(payloadObj) {
     const json = JSON.stringify(buildCompact(payloadObj));
-    return LZString.compressToBase64(json)
+    const compressed = LZString.compressToUint8Array(json);
+    const scrambled = xor(compressed);
+    let binary = '';
+    for (let i = 0; i < scrambled.length; i++) binary += String.fromCharCode(scrambled[i]);
+    return btoa(binary)
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
   }
 
-  // base64url → base64 standard → LZString.decompressFromBase64 → JSON.parse.
+  // base64url → Uint8Array → XOR → LZ decompress → JSON.parse.
   function decode(token) {
     if (!token) return null;
     try {
       let b64 = token.replace(/-/g, '+').replace(/_/g, '/');
       while (b64.length % 4) b64 += '=';
-      const json = LZString.decompressFromBase64(b64);
+      const binaryStr = atob(b64);
+      const scrambled = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) scrambled[i] = binaryStr.charCodeAt(i);
+      const compressed = xor(scrambled);
+      const json = LZString.decompressFromUint8Array(compressed);
       if (!json) return null;
       const obj = JSON.parse(json);
       if (!obj || typeof obj !== 'object') return null;
