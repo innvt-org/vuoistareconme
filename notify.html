@@ -96,6 +96,7 @@
         showLockedTeaser(result?.teaser || teaser, true);
         return false;
       }
+      VSCM.rememberPassword(token, pw);
       runApp(result.payload, true);
       return true;
     });
@@ -180,7 +181,7 @@
     const result = await VSCM.decode(token);
     if (!result) { showError(); return; }
     if (result.locked) { showLockedTeaser(result.teaser, false); return; }
-    runApp(result.payload);
+    runApp(result.payload, VSCM.isLocked(token));
   })();
 
   function iconFallback(label) {

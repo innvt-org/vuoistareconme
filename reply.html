@@ -128,6 +128,7 @@
         showLockedTeaser(result?.teaser || teaser, true);
         return false;
       }
+      VSCM.rememberPassword(token, pw);
       runApp(result.payload);
       return true;
     });
@@ -334,6 +335,7 @@
 
   (async () => {
     if (!token || answerIdx == null) { showError(); return; }
+
     const result = await VSCM.decode(token);
     if (!result) { showError(); return; }
     if (result.locked) { showLockedTeaser(result.teaser, false); return; }

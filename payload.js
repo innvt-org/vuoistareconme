@@ -30,6 +30,22 @@ const VSCM = (() => {
     return !!token && token.startsWith('v2.');
   }
 
+  function sessionKey(token) {
+    return 'vscm_pw_' + token.slice(0, 48);
+  }
+
+  function rememberPassword(token, password) {
+    try { sessionStorage.setItem(sessionKey(token), password); } catch (_) {}
+  }
+
+  function forgetPassword(token) {
+    try { sessionStorage.removeItem(sessionKey(token)); } catch (_) {}
+  }
+
+  function getStoredPassword(token) {
+    try { return sessionStorage.getItem(sessionKey(token)); } catch (_) { return null; }
+  }
+
   function buildCompact(p) {
     const out = {};
     if (p.s)  out.s  = p.s;
@@ -171,7 +187,7 @@ const VSCM = (() => {
     }
 
     const teaser = parseTeaserMeta(token);
-    const pw = (password || '').trim();
+    const pw = (password || getStoredPassword(token) || '').trim();
     if (!pw) return { locked: true, teaser };
 
     try {
@@ -269,9 +285,16 @@ const VSCM = (() => {
     return { url: s, type: 'img' };
   }
 
+  function buildReplyNavParams(token, answerIdx, freeMsg) {
+    const params = { t: token, a: String(answerIdx) };
+    if (freeMsg) params.m = freeMsg;
+    return params;
+  }
+
   return {
     encode, decode, getParam, buildUrl, estimateUrlLength, resolveImg,
-    isLocked, parseTeaserMeta,
+    isLocked, parseTeaserMeta, buildReplyNavParams,
+    rememberPassword, forgetPassword, getStoredPassword,
     teaserPasswordHtml, teaserPasswordFormHtml, bindTeaserPassword,
   };
 })();
