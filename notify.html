@@ -74,23 +74,60 @@
   const extraNote = VSCM.getParam('n');
   const extraLink = VSCM.getParam('k');
   const extraImg  = VSCM.getParam('g');
-  const payload   = VSCM.decode(token);
   const app       = document.getElementById('app');
 
-  const isFreeText = answerIdx === 'ft';
-  const idx        = parseInt(answerIdx, 10);
-  const chosen     = isFreeText
-    ? (payload && payload.ft)
-    : (payload && payload.o && !isNaN(idx) ? payload.o[idx] : null);
-
-  if (!payload || !chosen || answerIdx == null) {
+  function showError() {
     app.innerHTML = `
       <div class="card error-box">
         <p style="font-size:15px;margin:0 0 6px">Link non valido o incompleto.</p>
         <p class="hint">Chiedi a chi te l'ha mandato di inviarlo di nuovo.</p>
-      </div>
-    `;
-  } else {
+      </div>`;
+  }
+
+  function showLockedTeaser(teaser, wrongPassword) {
+    app.innerHTML = `
+      <div class="notify-logo">vuoistareconme</div>
+      <div class="card center-card notify-card" id="teaser">
+        <div class="teaser-body">${buildNotifyTeaserBody(teaser, wrongPassword)}</div>
+      </div>`;
+    VSCM.bindTeaserPassword(async (pw) => {
+      const result = await VSCM.decode(token, pw);
+      if (!result || result.locked) {
+        showLockedTeaser(result?.teaser || teaser, true);
+        return false;
+      }
+      runApp(result.payload, true);
+      return true;
+    });
+  }
+
+  function buildNotifyTeaserBody(meta, wrongPassword) {
+    const s = meta?.s || '';
+    const r = meta?.r || '';
+    if (wrongPassword != null) {
+      return `
+        ${s ? `<p class="teaser-line teaser-receiver">${esc(s)},</p>` : ''}
+        <p class="teaser-line teaser-msg">${r ? `<span style="color:var(--text)">${esc(r)}</span> ha risposto` : 'Qualcuno ha risposto'}</p>
+        ${VSCM.teaserPasswordFormHtml(wrongPassword, 'Inserisci la password per vederla')}`;
+    }
+    return `
+      ${s ? `<p class="teaser-line teaser-receiver">${esc(s)},</p>` : ''}
+      <p class="teaser-line teaser-msg">${r ? `<span style="color:var(--text)">${esc(r)}</span> ha risposto` : 'Qualcuno ha risposto'}</p>
+      <div class="teaser-btn-wrap"><button class="teaser-btn" id="reveal-btn">Clicca qui per vedere</button></div>`;
+  }
+
+  function runApp(payload, revealNow) {
+    const isFreeText = answerIdx === 'ft';
+    const idx        = parseInt(answerIdx, 10);
+    const chosen     = isFreeText
+      ? (payload && payload.ft)
+      : (payload && payload.o && !isNaN(idx) ? payload.o[idx] : null);
+
+    if (!payload || !chosen || answerIdx == null) {
+      showError();
+      return;
+    }
+
     if (payload.th && payload.th !== 'violet') {
       document.body.setAttribute('data-theme', payload.th);
     }
@@ -118,17 +155,18 @@
           ${extraNoteHtml}
         </div>
         ${extraLinkHtml}
-        <div class="privacy-note">Questa pagina è visibile a chiunque abbia il link, senza login.</div>
+        <div class="privacy-note">${VSCM.isLocked(token) ? 'La password protegge il contenuto della risposta, non chi ha risposto.' : 'Questa pagina è visibile a chiunque abbia il link.'}</div>
       </div>`;
+
+    if (revealNow) {
+      app.innerHTML = contentHtml;
+      return;
+    }
 
     app.innerHTML = `
       <div class="notify-logo">vuoistareconme</div>
       <div class="card center-card notify-card" id="teaser">
-        <div class="teaser-body">
-          ${payload.s ? `<p class="teaser-line teaser-receiver">${esc(payload.s)},</p>` : ''}
-          <p class="teaser-line teaser-msg">${payload.r ? `<span style="color:var(--text)">${esc(payload.r)}</span> ha risposto` : 'Qualcuno ha risposto'}</p>
-          <div class="teaser-btn-wrap"><button class="teaser-btn" id="reveal-btn">Clicca qui per vedere</button></div>
-        </div>
+        <div class="teaser-body">${buildNotifyTeaserBody(payload)}</div>
       </div>`;
 
     document.getElementById('reveal-btn').addEventListener('click', () => {
@@ -136,6 +174,14 @@
       setTimeout(() => { app.innerHTML = contentHtml; }, 200);
     });
   }
+
+  (async () => {
+    if (!token || answerIdx == null) { showError(); return; }
+    const result = await VSCM.decode(token);
+    if (!result) { showError(); return; }
+    if (result.locked) { showLockedTeaser(result.teaser, false); return; }
+    runApp(result.payload);
+  })();
 
   function iconFallback(label) {
     const l = (label || '').toLowerCase();

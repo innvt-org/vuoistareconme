@@ -242,9 +242,30 @@
     </div>
   </div>
 
+  <!-- Password opzionale -->
+  <div class="option-block" style="margin-top:20px">
+    <p class="label" style="margin-top:0">Password (opzionale)</p>
+    <p class="password-hint" id="pw-hint-open">
+      <span class="password-hint-strong">Senza password</span>, chiunque abbia il link può aprire e leggere il messaggio.
+    </p>
+    <p class="password-hint" id="pw-hint-locked" style="display:none">
+      Con password il <strong>contenuto</strong> (domanda, risposte, messaggi) sarà cifrato nel link.
+      I <strong>nomi</strong> restano visibili — la password protegge il contenuto, non l'identità.
+      Invia <strong>link</strong> e <strong>password separatamente</strong>
+      (es. link su WhatsApp, password a voce).
+    </p>
+    <input type="password" id="message-password" placeholder="Lascia vuoto per nessuna password" autocomplete="new-password">
+    <p class="privacy-note" style="margin-top:10px">
+      I dati restano nel <code>#</code> dell'URL e non vengono inviati al server. La password non va mai nel link.
+    </p>
+  </div>
+
   <!-- Preview e azioni -->
   <div class="url-box" id="url-preview">—</div>
   <div id="url-warning"></div>
+  <p class="privacy-note" id="pw-copy-hint" style="display:none;margin-top:12px">
+    Ricorda di inviare la password a parte, su un canale diverso dal link.
+  </p>
   <button class="btn-primary" id="copy-btn">Copia il link</button>
   <button class="btn-secondary" id="open-btn">Apri anteprima →</button>
 
@@ -468,15 +489,44 @@ function buildPayload() {
   return p;
 }
 
-function updatePreview() {
+function updatePasswordHints() {
+  const pw = document.getElementById('message-password').value.trim();
+  const locked = pw.length > 0;
+  document.getElementById('pw-hint-open').style.display = locked ? 'none' : '';
+  document.getElementById('pw-hint-locked').style.display = locked ? '' : 'none';
+  document.getElementById('pw-copy-hint').style.display = locked ? '' : 'none';
+}
+
+async function updatePreview() {
+  updatePasswordHints();
   const payload = buildPayload();
-  const url = VSCM.buildUrl('request.html', { t: VSCM.encode(payload) });
+  const pw = document.getElementById('message-password').value;
+  const token = await VSCM.encode(payload, pw);
+  const url = VSCM.buildUrl('request.html', { t: token });
   document.getElementById('url-preview').textContent = url;
   document.getElementById('url-warning').innerHTML = url.length > 2000
     ? `<div class="warning">Il link supera 2000 caratteri. Accorcia i messaggi.</div>`
     : '';
-  // Salva bozza in localStorage così si può riprendere in seguito
-  try { localStorage.setItem('vscm_draft', VSCM.encode(payload)); } catch (_) {}
+  try { localStorage.setItem('vscm_draft', token); } catch (_) {}
+}
+
+function applyPayloadToForm(p) {
+  document.getElementById('sender').value     = p.s;
+  document.getElementById('receiver').value   = p.r;
+  document.getElementById('question').value   = p.q;
+  document.getElementById('img-header').value = p.img || '';
+  options.splice(0);
+  linkStates.splice(0);
+  p.o.forEach(o => {
+    options.push({ label: o.label || '', icon: o.icon || '💬', msg: o.msg || '', link: o.link || '', img: o.img || '' });
+    linkStates.push(detectLinkType(o.link));
+  });
+  if (p.th) applyTheme(p.th);
+  if (p.ft) showFtConfig(p.ft); else hideFtConfig();
+  renderOptionBlocks();
+  restoreLinkUi();
+  updatePreview();
+  refreshAllImgPreviews();
 }
 
 function showImgPreview(previewEl, rawUrl) {
@@ -517,6 +567,7 @@ document.getElementById('img-header').addEventListener('input', () => {
   updatePreview();
   showImgPreview(document.getElementById('img-header-preview'), document.getElementById('img-header').value);
 });
+document.getElementById('message-password').addEventListener('input', updatePreview);
 
 document.getElementById('copy-btn').addEventListener('click', () => {
   const url = document.getElementById('url-preview').textContent;
@@ -574,29 +625,64 @@ function applyTheme(th) {
 }
 
 function loadDraft() {
-  // 1) controlla hash URL (es. edit.html#t=...): permette di riaprire un link già generato
-  // 2) controlla localStorage: ripristina l'ultima sessione
   const token  = VSCM.getParam('t');
   const stored = token || (() => { try { return localStorage.getItem('vscm_draft'); } catch(_) {} return null; })();
-  if (stored) {
-    const p = VSCM.decode(stored);
-    if (p) {
-      document.getElementById('sender').value     = p.s;
-      document.getElementById('receiver').value   = p.r;
-      document.getElementById('question').value   = p.q;
-      document.getElementById('img-header').value = p.img || '';
-      options.splice(0);
-      linkStates.splice(0);
-      p.o.forEach(o => {
-        options.push({ label: o.label || '', icon: o.icon || '💬', msg: o.msg || '', link: o.link || '', img: o.img || '' });
-        linkStates.push(detectLinkType(o.link));
-      });
-      if (p.th) applyTheme(p.th);
-      if (p.ft) showFtConfig(p.ft); else hideFtConfig();
-    }
+  if (!stored) {
+    renderOptionBlocks();
+    return;
   }
-  renderOptionBlocks();
-  restoreLinkUi();
+  if (VSCM.isLocked(stored)) {
+    const teaser = VSCM.parseTeaserMeta(stored);
+    const unlockCard = document.createElement('div');
+    unlockCard.className = 'card center-card';
+    unlockCard.id = 'edit-unlock-card';
+    document.querySelector('.card').before(unlockCard);
+    function buildEditUnlockBody(meta, wrongPassword) {
+      const r = meta?.r || '';
+      return `
+        ${r ? `<p class="teaser-line teaser-receiver" style="font-family:'Pacifico',cursive;font-size:clamp(20px,5.5vw,28px);margin:0">${escHtml(r)},</p>` : ''}
+        <p class="teaser-line teaser-msg" style="font-family:'Pacifico',cursive;font-size:clamp(20px,5.5vw,28px);margin:0;text-align:center;color:var(--accent);padding:16px 10%">
+          Messaggio protetto
+        </p>
+        ${VSCM.teaserPasswordFormHtml(wrongPassword, 'Inserisci la password per modificarlo')}
+        <div class="teaser-btn-wrap" style="margin-top:20px">
+          <button type="button" class="btn-secondary" id="edit-start-fresh">Parti da zero</button>
+        </div>`;
+    }
+    function startFresh() {
+      try { localStorage.removeItem('vscm_draft'); } catch (_) {}
+      if (VSCM.getParam('t')) {
+        location.replace('edit.html');
+        return;
+      }
+      unlockCard.remove();
+      renderOptionBlocks();
+      updatePreview();
+      refreshAllImgPreviews();
+    }
+    function showLockedTeaser(wrongPassword) {
+      unlockCard.innerHTML = `<div class="teaser-body">${buildEditUnlockBody(teaser, wrongPassword)}</div>`;
+      VSCM.bindTeaserPassword(async (pw) => {
+        const result = await VSCM.decode(stored, pw);
+        if (!result || result.locked) {
+          showLockedTeaser(true);
+          return false;
+        }
+        unlockCard.remove();
+        applyPayloadToForm(result.payload);
+        return true;
+      });
+      document.getElementById('edit-start-fresh').addEventListener('click', startFresh);
+    }
+    showLockedTeaser(false);
+    renderOptionBlocks();
+    return;
+  }
+  (async () => {
+    const result = await VSCM.decode(stored);
+    if (result?.payload) applyPayloadToForm(result.payload);
+    else { renderOptionBlocks(); updatePreview(); }
+  })();
 }
 
 function escHtml(str) {
@@ -650,8 +736,10 @@ document.getElementById('add-option-btn').addEventListener('click', () => {
 });
 
 loadDraft();
-updatePreview();
-refreshAllImgPreviews();
+if (!VSCM.getParam('t') && !VSCM.isLocked(localStorage.getItem('vscm_draft') || '')) {
+  updatePreview();
+  refreshAllImgPreviews();
+}
 </script>
 </body>
 </html>

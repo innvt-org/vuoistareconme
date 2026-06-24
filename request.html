@@ -71,23 +71,58 @@
 <script src="lz-string.min.js"></script>
 <script src="payload.js"></script>
 <script>
-  const token   = VSCM.getParam('t');
-  const payload = VSCM.decode(token);
-  const app     = document.getElementById('app');
+  const token = VSCM.getParam('t');
+  const app   = document.getElementById('app');
 
-  if (!payload || !payload.q || payload.o.length === 0) {
+  function showError() {
     app.innerHTML = `
       <div class="card error-box">
         <p style="font-size:15px;margin:0 0 6px">Link non valido o incompleto.</p>
         <p class="hint">Chiedi a chi te l'ha mandato di generarne uno nuovo.</p>
-      </div>
-    `;
-  } else {
+      </div>`;
+  }
+
+  function showLockedTeaser(teaser, wrongPassword) {
+    app.innerHTML = `
+      <div class="req-logo">vuoistareconme</div>
+      <div class="card center-card req-card" id="teaser">
+        <div class="teaser-body">${buildRequestTeaserBody(teaser, wrongPassword)}</div>
+      </div>`;
+    VSCM.bindTeaserPassword(async (pw) => {
+      const result = await VSCM.decode(token, pw);
+      if (!result || result.locked) {
+        showLockedTeaser(result?.teaser || teaser, true);
+        return false;
+      }
+      runApp(result.payload, true);
+      return true;
+    });
+  }
+
+  function buildRequestTeaserBody(meta, wrongPassword) {
+    const s = meta?.s || '';
+    const r = meta?.r || '';
+    if (wrongPassword != null) {
+      return `
+        ${r ? `<p class="teaser-line teaser-receiver">${esc(r)},</p>` : ''}
+        <p class="teaser-line teaser-msg">${s ? `<span style="color:var(--text)">${esc(s)}</span> ti ha inviato un messaggio` : 'hai ricevuto un messaggio'}</p>
+        ${VSCM.teaserPasswordFormHtml(wrongPassword, 'Inserisci la password per vederlo')}`;
+    }
+    return `
+      ${r ? `<p class="teaser-line teaser-receiver">${esc(r)},</p>` : ''}
+      <p class="teaser-line teaser-msg">${s ? `<span style="color:var(--text)">${esc(s)}</span> ti ha inviato un messaggio` : 'hai ricevuto un messaggio'}</p>
+      <div class="teaser-btn-wrap"><button class="teaser-btn" id="reveal-btn">Clicca qui per vederlo</button></div>`;
+  }
+
+  function runApp(payload, revealNow) {
+    if (!payload || !payload.q || payload.o.length === 0) {
+      showError();
+      return;
+    }
     if (payload.th && payload.th !== 'violet') {
       document.body.setAttribute('data-theme', payload.th);
     }
 
-    // Pre-calcolo HTML della fase contenuto
     const heroHtml = `
       <div class="question-hero">
         ${payload.r ? `<p class="qh-line qh-receiver">${esc(payload.r)},</p>` : ''}
@@ -131,34 +166,45 @@
       }
     }
 
+    function showContent() {
+      app.innerHTML = `
+        <div class="req-logo">vuoistareconme</div>
+        <div class="card center-card req-card is-in">
+          ${payload.img ? renderImg(payload.img) : ''}
+          ${heroHtml}
+          <div class="options">${optionsHtml}</div>
+          ${ftHtml}
+          ${footerHtml}
+        </div>`;
+      attachHandlers();
+    }
+
     function revealContent() {
       document.getElementById('teaser').classList.add('is-out');
-      setTimeout(() => {
-        app.innerHTML = `
-          <div class="req-logo">vuoistareconme</div>
-          <div class="card center-card req-card is-in">
-            ${payload.img ? renderImg(payload.img) : ''}
-            ${heroHtml}
-            <div class="options">${optionsHtml}</div>
-            ${ftHtml}
-            ${footerHtml}
-          </div>`;
-        attachHandlers();
-      }, 200);
+      setTimeout(showContent, 200);
+    }
+
+    if (revealNow) {
+      showContent();
+      return;
     }
 
     app.innerHTML = `
       <div class="req-logo">vuoistareconme</div>
       <div class="card center-card req-card" id="teaser">
-        <div class="teaser-body">
-          ${payload.r ? `<p class="teaser-line teaser-receiver">${esc(payload.r)},</p>` : ''}
-          <p class="teaser-line teaser-msg">${payload.s ? `<span style="color:var(--text)">${esc(payload.s)}</span> ti ha inviato un messaggio` : 'hai ricevuto un messaggio'}</p>
-          <div class="teaser-btn-wrap"><button class="teaser-btn" id="reveal-btn">Clicca qui per vederlo</button></div>
-        </div>
+        <div class="teaser-body">${buildRequestTeaserBody(payload)}</div>
       </div>`;
 
     document.getElementById('reveal-btn').addEventListener('click', revealContent);
   }
+
+  (async () => {
+    if (!token) { showError(); return; }
+    const result = await VSCM.decode(token);
+    if (!result) { showError(); return; }
+    if (result.locked) { showLockedTeaser(result.teaser, false); return; }
+    runApp(result.payload);
+  })();
 
   function renderImg(raw) {
     const { url, type, ytId } = VSCM.resolveImg(raw);
